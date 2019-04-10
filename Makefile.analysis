@@ -1,0 +1,93 @@
+
+#===============================================================================
+# Variable Definitions
+#===============================================================================
+
+CXX := icpc
+
+ifeq (${CXX},icpc)
+	# For ICPC, use "-qopenmp"
+	OPENMP_FLAG := -qopenmp
+	OPENMP_LIB := -liomp5
+	LDLIBS += -L/usr/local/intel_compilers/2017/mkl/lib/intel64/               \
+              -Wl,-rpath=/usr/local/intel_compilers/2017/mkl/lib/intel64/
+
+	LINALG_LIBS :=                                                             \
+	-lmkl_intel_lp64                                                           \
+    -lmkl_intel_thread                                                         \
+    -lmkl_core
+else
+ifeq (${CXX},g++)
+	# For GCC, use "-fopenmp" and include some shared libs
+	OPENMP_FLAG := -fopenmp
+	OPENMP_LIB = -lgomp
+	LDLIBS +=                                                                                           \
+		/usr/local/gcc/5.3.0/lib64/libgomp.so
+else
+	# Using some other compiler, so don't do anything special
+endif
+endif
+
+NETCDF_FLAGS :=                                                                \
+	-I/usr/include                                                             \
+	-L/usr/lib64                                                               \
+	-I/usr/local/netcdf/4.6.1/include                                            \
+	-L/usr/local/netcdf/4.6.1/lib64                                              \
+
+NETCDF_LIBS :=                                                                 \
+	-lnetcdf
+
+PLASMA_FLAGS :=                                                                \
+	${OPENMP_FLAG}
+
+PLASMA_LIBS :=                                                                 \
+	-llapacke                                                                  \
+	-lplasma                                                                   \
+	-lcoreblasqw                                                               \
+	-lcoreblas                                                                 \
+	${LINALG_LIBS}                                                             \
+	-lquark                                                                    \
+	-ltmg                                                                      \
+	${OPENMP_LIB}
+
+
+FLAGS := ${CXXFLAGS} -Wall -Wextra -std=c++11 -Isrc/ ${NETCDF_FLAGS} ${PLASMA_FLAGS}
+LIBS := ${LDLIBS} ${LDFLAGS} ${NETCDF_LIBS} ${PLASMA_LIBS}
+DB := ${DBFLAGS} -O0 -g -DDEBUG
+
+HPP_SOURCE := src/*.hpp
+CPP_SOURCE := src/*.cpp main.cpp
+TPP_SOURCE := src/*.tpp
+ALL_SOURCE := ${HPP_SOURCE} ${CPP_SOURCE} ${TPP_SOURCE}
+
+BIN_MAIN  := bin/main.x
+BIN_DEBUG := bin/debug.x
+
+
+
+
+
+#===============================================================================
+# Target Definitions
+#===============================================================================
+
+.PHONY: build
+build: ${BIN_MAIN}
+
+${BIN_MAIN}: ${ALL_SOURCE}
+	${CXX} ${FLAGS} ${CPP_SOURCE} ${LIBS} -o ${BIN_MAIN} 
+
+.PHONY: debug
+debug: ${BIN_DEBUG}
+
+${BIN_DEBUG}: ${ALL_SOURCE}
+	${CXX} ${DB} ${FLAGS} ${CPP_SOURCE} ${LIBS} -o ${BIN_DEBUG}
+
+.PHONY: clean
+clean:
+	rm -f bin/*.x bin/*.o
+
+.PHONY: load
+load:
+	@echo 'source env.analysis'
+
