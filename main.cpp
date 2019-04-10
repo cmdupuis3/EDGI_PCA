@@ -24,8 +24,17 @@
 #include <ctime>
 #include <omp.h>
 #include "src/eof_analysis.hpp"
-#include "src/plasma_svd.hpp"
-//#include "src/mkl_svd.hpp"
+
+#ifdef WITH_PLASMA
+    #include "linalg/plasma_svd.hpp"
+    #define SVD_TYPE plasma_svd_t
+#elif WITH_MKL
+    #include "linalg/mkl_svd.hpp"
+    #define SVD_TYPE mkl_svd_t
+#elif WITH_OPENBLAS
+    #include "linalg/openblas_svd.hpp"
+    #define SVD_TYPE openblas_svd_t
+#endif
 
 #include "src/debug.hpp"
 
@@ -66,7 +75,7 @@ int example_1(int argc, char** argv) {
     
     // Calculate the EOFs
     real_eof_t<float> eof;
-    eof.set_svd(new plasma_svd_t<float>(32));
+    eof.set_svd(new SVD_TYPE<float>(32));
     vector<real_variable_t<float>*> vars = eof.calculate({&var}, dim_name, 32, false);
     
     // Write the output data
@@ -97,7 +106,7 @@ int example_2(int argc, char** argv) {
     
     // Calculate the EOFs
     complex_eof_t<float> eof;
-    eof.set_svd(new plasma_svd_t<float>(32));
+    eof.set_svd(new SVD_TYPE<float>(32));
     vector<complex_variable_t<float>*> vars = eof.calculate({var}, dim_name, 32, false);
     
     // Open the output file and write the resulting EOFs
@@ -335,7 +344,7 @@ int basic_interface(int argc, char** argv) {
         
         // Calculate the eofs with n cores using PLASMA
         real_eof_t<float> eof;
-        eof.set_svd(new plasma_svd_t<float>(args.ncores_in));
+        eof.set_svd(new SVD_TYPE<float>(args.ncores_in));
         //eof.set_svd(new mkl_svd_t<float>(args.ncores_in));
         vector<real_variable_t<float>*> vars_out = eof.calculate(vars_in, args.dim_in, args.ncores_in, args.is_circular);
         
@@ -404,7 +413,7 @@ int basic_interface(int argc, char** argv) {
         
         // Calculate the eofs with n cores using PLASMA
         complex_eof_t<float> eof;
-        eof.set_svd(new plasma_svd_t<float>(args.ncores_in));
+        eof.set_svd(new SVD_TYPE<float>(args.ncores_in));
         //eof.set_svd(new mkl_svd_t<float>(args.ncores_in));
         vector<complex_variable_t<float>*> vars_out = eof.calculate(vars_in, args.dim_in, args.ncores_in, args.is_circular, args.is_spectral, omegas_len, omegas);
         

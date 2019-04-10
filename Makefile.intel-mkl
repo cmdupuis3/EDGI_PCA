@@ -1,0 +1,134 @@
+
+#===============================================================================
+# Variable Definitions
+#===============================================================================
+
+NC_PATH = /opt/netcdf/4.6.1/INTEL
+CXX := icpc
+
+OPENMP_FLAG := -qopenmp
+OPENMP_LIB := -liomp5
+
+MKL_LIBS :=                                                                    \
+    -lmkl_intel_lp64                                                           \
+    -lmkl_intel_thread                                                         \
+    -lmkl_core
+
+ifdef with_plasma
+
+	ifndef PLASMA_INCDIR\
+		@echo 'The path to the Plasma include directory needs to be set as PLASMA_INCDIR'
+	endif
+	PLASMA_FLAGS :=                                                            \
+		-I${PLASMA_INCDIR}
+
+	PLASMA_LIBS :=                                                             \
+		-lplasma                                                               \
+		-lcoreblasqw                                                           \
+		-lcoreblas
+
+	LINALG_LIBS :=                                                             \
+		-llapacke                                                              \
+		${PLASMA_LIBS}                                                         \
+		${MKL_LIBS}                                                            \
+		-lquark                                                                \
+		-lifport                                                               \
+		-lifcoremt                                                             \
+		-limf                                                                  \
+		-lsvml
+
+	CMP_FLAG := \
+		WITH_PLASMA
+
+else
+	PLASMA_FLAGS :=
+	PLASMA_LIBS :=
+
+	LINALG_LIBS :=                                                             \
+		-llapacke                                                              \
+		${MKL_LIBS}                                                            \
+		-lifport                                                               \
+		-lifcoremt                                                             \
+		-limf                                                                  \
+		-lsvml
+
+	CMP_FLAG := \
+		WITH_MKL
+
+endif
+
+
+NC_FLAGS :=                                                                    \
+	-I${NC_PATH}/include                                                       \
+	-L${NC_PATH}/lib64
+
+NETCDF_FLAGS :=                                                                \
+    ${NC_FLAGS}
+
+NETCDF_LIBS :=                                                                 \
+	-lnetcdf
+
+FLAGS := ${CXXFLAGS} -Wall -Wextra -std=c++11 -Isrc/ -Isrc/linalg ${NETCDF_FLAGS} ${OPENMP_FLAG} ${PLASMA_FLAGS} -D${CMP_FLAG}
+LIBS := ${LDLIBS} ${LDFLAGS} ${NETCDF_LIBS} ${LINALG_LIBS} ${OPENMP_LIB}
+PROD := -O0
+DB := ${DBFLAGS} -O0 -g -DDEBUG
+
+HPP_SOURCE := src/*.hpp
+CPP_SOURCE := src/*.cpp main.cpp
+TPP_SOURCE := src/*.tpp
+
+ifdef with_plasma
+LINALG_HPP_SOURCE := linalg/plasma_svd.hpp
+LINALG_TPP_SOURCE := linalg/plasma_svd.tpp
+else
+LINALG_HPP_SOURCE := linalg/mkl_svd.hpp
+LINALG_TPP_SOURCE := linalg/mkl_svd.tpp
+endif
+
+ALL_SOURCE := ${HPP_SOURCE} ${LINALG_HPP_SOURCE} ${CPP_SOURCE} ${LINALG_CPP_SOURCE} ${TPP_SOURCE}
+
+BIN_MAIN  := bin/main.x
+BIN_DEBUG := bin/debug.x
+
+
+
+
+
+#===============================================================================
+# Target Definitions
+#===============================================================================
+
+.PHONY: build
+build: ${BIN_MAIN}
+
+${BIN_MAIN}: ${ALL_SOURCE}
+	${CXX} ${PROD} ${FLAGS} -o ${BIN_MAIN} ${CPP_SOURCE} ${LIBS}
+
+.PHONY: debug
+debug: ${BIN_DEBUG}
+
+${BIN_DEBUG}: ${ALL_SOURCE}
+	${CXX} ${DB} ${FLAGS} -o ${BIN_DEBUG} ${CPP_SOURCE} ${LIBS}
+
+.PHONY: clean
+clean:
+	rm -f bin/*.x bin/*.o
+
+.PHONY: load
+load:
+	@echo ''
+	@echo 'This makefile includes recipes for four builds using the Intel compiler.'
+	@echo ''
+	@echo 'Requirements:'
+	@echo '    Intel compiler supporting C++11'
+	@echo '    NetCDF library compiled with Intel'
+	@echo '    (Optional) Plasma linear algebra library (must be version 2.8.0)'
+	@echo ''
+	@echo 'Builds:'
+	@echo '    make build -> production mode with MKL'
+	@echo '    make debug -> debug mode with MKL'
+	@echo '    make with_plasma=1 build -> production mode with PLASMA'
+	@echo '    make with_plasma=1 debug -> debug mode with PLASMA'
+	@echo ''
+
+
