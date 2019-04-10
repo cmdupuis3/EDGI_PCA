@@ -1,5 +1,5 @@
 
-# EOF Analysis
+# EDGI Principal Component Analysis
 
 ### Chris Dupuis and Curtis Bechtel
 
