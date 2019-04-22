@@ -3,8 +3,8 @@
 # Variable Definitions
 #===============================================================================
 
-NC_PATH = /opt/netcdf/4.6.1/INTEL #change!
-MKLROOT = /usr/local/intel_compilers/17.0.3/mkl #change!
+NC_PATH = /opt/netcdf/4.6.1/INTEL
+MKLROOT = /usr/local/intel_compilers/17.0.3/mkl
 
 
 CXX := icpc
@@ -12,10 +12,10 @@ OPENMP_FLAG := -qopenmp
 OPENMP_LIB := -liomp5
 
 LDLIBS :=                                                                      \
-	-L${MKLROOT}/lib/intel64                                                   \
+	-L${MKLROOT}/lib/intel64
 
 LDFLAGS :=                                                                     \
-	-Wl,-rpath=${MKLROOT}/lib/intel64                                          \
+	-Wl,-rpath=${MKLROOT}/lib/intel64
 
 MKL_LIBS :=                                                                    \
 	-lmkl_intel_lp64                                                           \
