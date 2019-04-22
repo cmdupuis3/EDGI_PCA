@@ -3,16 +3,24 @@
 # Variable Definitions
 #===============================================================================
 
-NC_PATH = /opt/netcdf/4.6.1/INTEL
-CXX := icpc
+NC_PATH = /opt/netcdf/4.6.1/INTEL #change!
+MKLROOT = /usr/local/intel_compilers/17.0.3/mkl #change!
 
+
+CXX := icpc
 OPENMP_FLAG := -qopenmp
 OPENMP_LIB := -liomp5
 
+LDLIBS :=                                                                      \
+	-L${MKLROOT}/lib/intel64                                                   \
+
+LDFLAGS :=                                                                     \
+	-Wl,-rpath=${MKLROOT}/lib/intel64                                          \
+
 MKL_LIBS :=                                                                    \
-    -lmkl_intel_lp64                                                           \
-    -lmkl_intel_thread                                                         \
-    -lmkl_core
+	-lmkl_intel_lp64                                                           \
+	-lmkl_intel_thread                                                         \
+	-lmkl_core
 
 ifdef with_plasma
 
@@ -32,7 +40,8 @@ ifdef with_plasma
 		-lifport                                                               \
 		-lifcoremt                                                             \
 		-limf                                                                  \
-		-lsvml
+		-lsvml                                                                 \
+		-lirc
 
 	CMP_FLAG := \
 		WITH_PLASMA
@@ -47,7 +56,8 @@ else
 		-lifport                                                               \
 		-lifcoremt                                                             \
 		-limf                                                                  \
-		-lsvml
+		-lsvml                                                                 \
+		-lirc
 
 	CMP_FLAG := \
 		WITH_MKL
@@ -60,13 +70,13 @@ NC_FLAGS :=                                                                    \
 	-L${NC_PATH}/lib64
 
 NETCDF_FLAGS :=                                                                \
-    ${NC_FLAGS}
+	${NC_FLAGS}
 
 NETCDF_LIBS :=                                                                 \
 	-lnetcdf
 
-FLAGS := ${CXXFLAGS} -Wall -Wextra -std=c++11 -Isrc/ -Isrc/linalg ${NETCDF_FLAGS} ${OPENMP_FLAG} ${PLASMA_FLAGS} -D${CMP_FLAG}
-LIBS := ${LDLIBS} ${LDFLAGS} ${NETCDF_LIBS} ${LINALG_LIBS} ${OPENMP_LIB}
+FLAGS := ${CXXFLAGS} -Wall -Wextra -std=c++11 -Isrc/ -Isrc/linalg ${LDFLAGS} ${NETCDF_FLAGS} ${OPENMP_FLAG} ${PLASMA_FLAGS} -D${CMP_FLAG}
+LIBS := ${LDLIBS} ${NETCDF_LIBS} ${LINALG_LIBS} ${OPENMP_LIB}
 PROD := -O0
 DB := ${DBFLAGS} -O0 -g -DDEBUG
 
@@ -82,7 +92,7 @@ LINALG_HPP_SOURCE := linalg/mkl_svd.hpp
 LINALG_TPP_SOURCE := linalg/mkl_svd.tpp
 endif
 
-ALL_SOURCE := ${HPP_SOURCE} ${LINALG_HPP_SOURCE} ${CPP_SOURCE} ${LINALG_CPP_SOURCE} ${TPP_SOURCE}
+ALL_SOURCE := ${HPP_SOURCE} ${LINALG_HPP_SOURCE} ${CPP_SOURCE} ${TPP_SOURCE} ${LINALG_TPP_SOURCE}
 
 BIN_MAIN  := bin/main.x
 BIN_DEBUG := bin/debug.x
