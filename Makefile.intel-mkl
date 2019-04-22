@@ -107,12 +107,14 @@ BIN_DEBUG := bin/debug.x
 
 .PHONY: build
 build: ${BIN_MAIN}
+	cp ${BIN_MAIN} edgi
 
 ${BIN_MAIN}: ${ALL_SOURCE}
 	${CXX} ${PROD} ${FLAGS} -o ${BIN_MAIN} ${CPP_SOURCE} ${LIBS}
 
 .PHONY: debug
 debug: ${BIN_DEBUG}
+	cp ${BIN_DEBUG} edgi_debug
 
 ${BIN_DEBUG}: ${ALL_SOURCE}
 	${CXX} ${DB} ${FLAGS} -o ${BIN_DEBUG} ${CPP_SOURCE} ${LIBS}
