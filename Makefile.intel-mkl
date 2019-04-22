@@ -16,9 +16,6 @@ MKL_LIBS :=                                                                    \
 
 ifdef with_plasma
 
-	ifndef PLASMA_INCDIR\
-		@echo 'The path to the Plasma include directory needs to be set as PLASMA_INCDIR'
-	endif
 	PLASMA_FLAGS :=                                                            \
 		-I${PLASMA_INCDIR}
 
