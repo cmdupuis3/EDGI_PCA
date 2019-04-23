@@ -23,3 +23,30 @@ than a line or two on a command line. See "EDGIer APIs:
 Scalable, Feature-Rich Empirical Orthogonal Function 
 Analysis of Distributed Geoscientific Data That 'Just Works'"
 for more information.
+
+##Compilation:
+
+Currently, only builds with the Intel compiler and MKL are supported, with the option of
+using the PLASMA package. An example makefile (Makefile.intel-mkl) is included; one should
+be able to copy it as "Makefile" and run "make build" to build the edgi executable.
+
+A GCC/OpenBLAS configuration is also in the works and should be available soon.
+
+##Usage:
+    edgi <options>
+
+###Options:
+    -h                        Show help message.
+    -f <i>:<o> ... (required) Read data from file <i> and write to file <o>. Multiple
+                              <i>:<o> pairs can be specified and separated by spaces.
+    -v <i>:<o> ... (required) Calculate EOFs on variable <i> and output as variable <o>. Multiple
+                              <i>:<o> pairs can be specified and separated by spaces
+    -c <i>:<o> ... (optional) Add imaginary component <i> to variable and output as <o>. Number
+                              of <i>:<o> pairs must equal number of variable <i>:<o> pairs.
+    -C         ... (optional) Flag for circular data. Calculates circular covariance instead of
+                              regular covariance, which will enhance EOFs for circular variables.
+                              Units assumed to be radians. For use with real-valued data.
+    -S         ... (optional) Flag for spectral data. Assumes -d refers to an angular frequency
+                              variable, and weights covariance calculation for T-series accordingly. 
+    -d <i>     ... (required) Time dimension name.
+    -n <i>     ... (required) Set the number of cores to use.
