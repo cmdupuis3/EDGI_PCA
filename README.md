@@ -24,7 +24,7 @@ Scalable, Feature-Rich Empirical Orthogonal Function
 Analysis of Distributed Geoscientific Data That 'Just Works'"
 for more information.
 
-##Compilation:
+## Compilation:
 
 Currently, only builds with the Intel compiler and MKL are supported, with the option of
 using the PLASMA package. An example makefile (Makefile.intel-mkl) is included; one should
@@ -32,10 +32,10 @@ be able to copy it as "Makefile" and run "make build" to build the edgi executab
 
 A GCC/OpenBLAS configuration is also in the works and should be available soon.
 
-##Usage:
+## Usage:
     edgi <options>
 
-###Options:
+### Options:
     -h                        Show help message.
     -f <i>:<o> ... (required) Read data from file <i> and write to file <o>. Multiple
                               <i>:<o> pairs can be specified and separated by spaces.
