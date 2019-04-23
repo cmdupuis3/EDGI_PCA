@@ -12,8 +12,8 @@ basically the same as EOFs), including support for real-
 and complex-valued data, data stored in multiple files,
 PCA with multiple variables, and PCA of circular data.
 Any of these flavors of PCA may be computed along any
-dimension of the user's choice, and may have arbitrary
-distributions of missing data along orthogonal dimensions.
+dimension of the user's choice, and may have missing rows
+of data in any configuration along the remaining dimensions.
 
 Parallelism is implemented with OpenMP, and is well-suited
 to experiments on a desktop or a single HPC node.
