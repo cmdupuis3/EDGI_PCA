@@ -24,8 +24,9 @@ MKL_LIBS :=                                                                    \
 
 ifdef with_plasma
 
-	PLASMA_FLAGS :=                                                            \
-		-I${PLASMA_INCDIR}
+	LINALG_FLAGS :=                                                            \
+		-I${PLASMA_INCDIR}                                                     \
+		-L${PLASMA_LIBDIR}
 
 	PLASMA_LIBS :=                                                             \
 		-lplasma                                                               \
@@ -43,11 +44,14 @@ ifdef with_plasma
 		-lsvml                                                                 \
 		-lirc
 
-	CMP_FLAG := \
-		WITH_PLASMA
+	CMP_FLAG :=                                                                \
+		-DWITH_PLASMA
 
 else
-	PLASMA_FLAGS :=
+	LINALG_FLAGS :=                                                            \
+		-DMKL_Complex8="std::complex<float>"                                   \
+		-DMKL_Complex16="std::complex<double>"
+
 	PLASMA_LIBS :=
 
 	LINALG_LIBS :=                                                             \
@@ -59,8 +63,8 @@ else
 		-lsvml                                                                 \
 		-lirc
 
-	CMP_FLAG := \
-		WITH_MKL
+	CMP_FLAG :=                                                                \
+		-DWITH_MKL
 
 endif
 
@@ -75,7 +79,7 @@ NETCDF_FLAGS :=                                                                \
 NETCDF_LIBS :=                                                                 \
 	-lnetcdf
 
-FLAGS := ${CXXFLAGS} -Wall -Wextra -std=c++11 -Isrc/ -Isrc/linalg ${LDFLAGS} ${NETCDF_FLAGS} ${OPENMP_FLAG} ${PLASMA_FLAGS} -D${CMP_FLAG}
+FLAGS := ${CXXFLAGS} -Wall -Wextra -std=c++11 -Isrc/ -Isrc/linalg ${LDFLAGS} ${NETCDF_FLAGS} ${OPENMP_FLAG} ${LINALG_FLAGS} ${CMP_FLAG}
 LIBS := ${LDLIBS} ${NETCDF_LIBS} ${LINALG_LIBS} ${OPENMP_LIB}
 PROD := -O0
 DB := ${DBFLAGS} -O0 -g -DDEBUG
@@ -139,5 +143,4 @@ load:
 	@echo '    make with_plasma=1 build -> production mode with PLASMA'
 	@echo '    make with_plasma=1 debug -> debug mode with PLASMA'
 	@echo ''
-
 
