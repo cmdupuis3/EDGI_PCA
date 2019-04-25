@@ -81,7 +81,7 @@ NETCDF_LIBS :=                                                                 \
 
 FLAGS := ${CXXFLAGS} -Wall -Wextra -std=c++11 -Isrc/ -Isrc/linalg ${LDFLAGS} ${NETCDF_FLAGS} ${OPENMP_FLAG} ${LINALG_FLAGS} ${CMP_FLAG}
 LIBS := ${LDLIBS} ${NETCDF_LIBS} ${LINALG_LIBS} ${OPENMP_LIB}
-PROD := -O0
+PROD := -O2
 DB := ${DBFLAGS} -O0 -g -DDEBUG
 
 HPP_SOURCE := src/*.hpp
