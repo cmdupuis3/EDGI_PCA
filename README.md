@@ -54,22 +54,22 @@ A GCC/OpenBLAS configuration is also in the works and should be available soon.
 ### Examples:
 
 * Bare bones:
- `edgi -f file.nc:file_eofs.nc -v var:var_eofs -d time -n 32`
+    edgi -f file.nc:file_eofs.nc -v var:var_eofs -d time -n 32
 
 * Single variable split across multiple files:
- `edgi -f file1.nc:file1_eofs.nc file2.nc:file2_eofs.nc file3.nc:file3_eofs.nc -v var:var_eofs -d time -n 32`
+    edgi -f file1.nc:file1_eofs.nc file2.nc:file2_eofs.nc file3.nc:file3_eofs.nc -v var:var_eofs -d time -n 32
 
 * EOFs of two variables simultaneously, both split across two files:
- `edgi -f file1.nc:file1_eofs.nc file2.nc:file2_eofs.nc -v var1:var1_eofs var2:var2_eofs -d time -n 32`
+    edgi -f file1.nc:file1_eofs.nc file2.nc:file2_eofs.nc -v var1:var1_eofs var2:var2_eofs -d time -n 32
 
 * Complex variable stored as component variables:
- `edgi -f file1.nc:file1_eofs.nc -v var_re:var_eofs_re -c var_im:var_im_eofs -d time -n 32`
+    edgi -f file1.nc:file1_eofs.nc -v var_re:var_eofs_re -c var_im:var_im_eofs -d time -n 32
 
 * Directional variable (e.g., wind stress direction, ocean current direction, etc):
- `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -C -d time -n 32`
+    edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -C -d time -n 32
 
 * Spectral variable:
- `edgi -f file1.nc:file1_eofs.nc -v svar:svar_eofs -S -d time -n 32`
+    edgi -f file1.nc:file1_eofs.nc -v svar:svar_eofs -S -d time -n 32
 
 * EOFs along ensemble member dimension:
- `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -d member -n 32`
+    edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -d member -n 32
