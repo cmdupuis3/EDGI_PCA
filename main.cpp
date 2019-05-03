@@ -28,10 +28,12 @@
 #ifdef WITH_PLASMA
     #include "linalg/plasma_svd.hpp"
     #define SVD_TYPE plasma_svd_t
-#elif WITH_MKL
+#endif
+#ifdef WITH_MKL
     #include "linalg/mkl_svd.hpp"
     #define SVD_TYPE mkl_svd_t
-#elif WITH_OPENBLAS
+#endif
+#ifdef WITH_OPENBLAS
     #include "linalg/openblas_svd.hpp"
     #define SVD_TYPE openblas_svd_t
 #endif

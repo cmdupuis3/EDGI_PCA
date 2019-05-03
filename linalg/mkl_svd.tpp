@@ -113,22 +113,17 @@ void mkl_svd_t<float>::calculate(
     
     // Launch SVD solver
     // TODO check return value for success / error code
-    float* superb = new float[min_dim-1];
-    LAPACKE_sgesvd(
+    LAPACKE_ssyevd(
         LAPACK_COL_MAJOR,
-        'A',                        // compute all vectors in U
-        'A',                        // compute all vectors in VT
-        rows,                       // number of rows in M
-        cols,                       // number of columns in M
-        input->get_data_unsafe(),   // M
-        rows,                       // leading dimension of M
-        s->get_data_unsafe(),       // S
-        u->get_data_unsafe(),       // U
-        rows,                       // leading dimension of U
-        vt->get_data_unsafe(),      // VT
-        cols,                       // leading dimension of VT
-        superb                      // superb
-    );
+        'V',                      // jobz
+        'U',                      // uplo
+        rows,                     // n
+        input->get_data_unsafe(), // a
+        rows,                     // lda
+        s->get_data_unsafe());    // work
+
+    // MKL solvers return answers in-situ, so copy input->data to u->data
+    u->set_submatrix(0, 0, rows, cols, input);
     
     // Print the time required to compute the SVD
     time_t end = time(nullptr);
@@ -193,23 +188,18 @@ void mkl_svd_t<float>::calculate(
     time_t start = time(nullptr);
     
     // Launch SVD solver
-    // TODO check return value for success / error code 
-    float* superb = new float[min_dim-1];
-    LAPACKE_cgesvd(
+    // TODO check return value for success / error code
+    LAPACKE_cheevd(
         LAPACK_COL_MAJOR,
-        'A',                                            // compute all vectors in U
-        'A',                                            // compute all vectors in VT
-        rows,                                           // number of rows in M
-        cols,                                           // number of columns in M
-        (MKL_Complex8*) input->get_data_unsafe(),       // M
-        rows,                                           // leading dimension of M
-        s->get_data_unsafe(),                           // S
-        (MKL_Complex8*) u->get_data_unsafe(),           // U
-        rows,                                           // leading dimension of U
-        (MKL_Complex8*) vt->get_data_unsafe(),          // VT
-        cols,                                           // leading dimension of VT
-        superb                                          // superb
-    );
+        'V',                      // jobz
+        'U',                      // uplo
+        rows,                     // n
+        input->get_data_unsafe(), // a
+        rows,                     // lda
+        s->get_data_unsafe());    // work
+
+    // MKL solvers return answers in-situ, so copy input->data to u->data
+    u->set_submatrix(0, 0, rows, cols, input);
     
     // Print the time required to compute the SVD
     time_t end = time(nullptr);
@@ -227,4 +217,3 @@ void mkl_svd_t<float>::calculate(
         delete vt;
     }
 }
-
