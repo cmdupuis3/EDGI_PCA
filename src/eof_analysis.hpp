@@ -24,6 +24,7 @@
 #include "netcdf_file.hpp"
 #include "variable.hpp"
 #include "eof.hpp"
+#include "spectrum.hpp"
 
 #endif
 

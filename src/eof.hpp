@@ -42,8 +42,11 @@
 /** Use svd_t */
 #include "svd.hpp"
 
+/** Use svd_t */
+#include "dft.hpp"
+
 /** Use interp_t */
-#include "interp.hpp"
+//#include "interp.hpp"
 
 /** Use matrix_reducer_t */
 #include "matrix_reducer.hpp"
@@ -62,10 +65,10 @@ private:
     //==========================================================================
     // Private Fields
     //==========================================================================
-    
+
     svd_t<T>* svd = nullptr;
     
-    interp_t<S>* interp = nullptr;
+    //interp_t<S>* interp = nullptr;
     
     
     
@@ -144,10 +147,10 @@ public:
     ~eof_t();
     
     void set_svd(svd_t<T>* svd);
+
+    //void set_interp(interp_t<S>* interp);
     
-    void set_interp(interp_t<S>* interp);
-    
-    void no_interp();
+    //void no_interp();
 
     std::vector<variable_t<S, T>*> calculate(
         variable_t<S, T>* input_var,

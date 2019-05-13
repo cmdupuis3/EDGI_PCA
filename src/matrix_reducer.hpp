@@ -52,6 +52,9 @@ public:
     
     matrix_t<T>* reduce(const matrix_t<T>* mat) const;
     matrix_t<T>* restore(const matrix_t<T>* mat, T fill) const;
+
+    matrix_t<std::complex<T>>* reduce(const matrix_t<std::complex<T>>* mat) const;
+    matrix_t<std::complex<T>>* restore(const matrix_t<std::complex<T>>* mat, std::complex<T> fill) const;
     
     size_t get_reduced_cols() const;
     size_t get_restored_cols() const;

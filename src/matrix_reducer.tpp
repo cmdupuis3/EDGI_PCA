@@ -137,6 +137,50 @@ matrix_t<T>* matrix_reducer_t<T>::restore(const matrix_t<T>* mat, T fill) const 
     
     return restored;
 }
+template<typename T>
+matrix_t<std::complex<T>>* matrix_reducer_t<T>::reduce(const matrix_t<std::complex<T>>* mat) const {
+    size_t rows = mat->get_rows();
+    matrix_t<std::complex<T>>* reduced = new matrix_t<std::complex<T>>(rows, this->num_reduced_cols);
+
+    std::complex<T> buffer[rows];
+    for (size_t c = 0; c < this->num_reduced_cols; c++) {
+        int mapped_c = this->map_reduced_cols[c];
+
+        if (mapped_c < 0) {
+            throw eof_error_t("(Internal Error) Negative map value during reduction");
+        } else {
+            mat->get_col(mapped_c, buffer);
+            reduced->set_col(c, buffer);
+        }
+    }
+
+    return reduced;
+}
+
+template<typename T>
+matrix_t<std::complex<T>>* matrix_reducer_t<T>::restore(const matrix_t<std::complex<T>>* mat, std::complex<T> fill) const {
+    size_t rows = mat->get_rows();
+    matrix_t<std::complex<T>>* restored = new matrix_t<std::complex<T>>(rows, this->num_restored_cols);
+
+    std::complex<T> fill_buffer[rows];
+    for (size_t i = 0; i < rows; i++) {
+        fill_buffer[i] = fill;
+    }
+
+    std::complex<T> buffer[rows];
+    for (size_t c = 0; c < this->num_restored_cols; c++) {
+        int mapped_c = this->map_restored_cols[c];
+
+        if (mapped_c < 0) {
+            restored->set_col(c, fill_buffer);
+        } else {
+            mat->get_col(mapped_c, buffer);
+            restored->set_col(c, buffer);
+        }
+    }
+
+    return restored;
+}
 
 template<typename T>
 size_t matrix_reducer_t<T>::get_reduced_cols() const {

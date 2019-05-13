@@ -59,10 +59,8 @@ void basic_svd_t<T>::calculate(
     }
     
     s->set_shape(1, rows <= cols ? rows : cols);
-    for (size_t r = 0; r < s->get_rows(); r++) {
-        for (size_t c = 0; c < s->get_cols(); c++) {
-            s->set_elem(r, c, r + c);
-        }
+    for (size_t r = 0; r < rows <= cols ? rows : cols; r++) {
+        s->set_elem(r, 1, r + 1);
     }
     
     vt->set_shape(cols, cols);
@@ -92,12 +90,10 @@ void basic_svd_t<T>::calculate(
             u->set_elem(r, c, r + c);
         }
     }
-    
+
     s->set_shape(1, rows <= cols ? rows : cols);
-    for (size_t r = 0; r < s->get_rows(); r++) {
-        for (size_t c = 0; c < s->get_cols(); c++) {
-            s->set_elem(r, c, r + c);
-        }
+    for (size_t r = 0; r < rows <= cols ? rows : cols; r++) {
+        s->set_elem(r, 1, r + 1);
     }
     
     vt->set_shape(cols, cols);
