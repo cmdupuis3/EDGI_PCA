@@ -1,23 +1,3 @@
-/***********************************************************************
- *                   GNU Lesser General Public License
- *
- * This file is part of the EDGI prototype package, developed by the 
- * GFDL Flexible Modeling System (FMS) group.
- *
- * EDGI is free software: you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at
- * your option) any later version.
- *
- * EDGI is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with EDGI.  If not, see <http://www.gnu.org/licenses/>.
- **********************************************************************/
-
 // Note: This is not intended to be a standalone implementation file.
 
 #include <limits>
@@ -646,6 +626,48 @@ variable_t<S, T>* variable_t<S, T>::from_matrix(const matrix_t<S>* mat, std::str
         c++;
     });
     
+    return var;
+}
+template<typename S, typename T>
+variable_t<std::complex<T>, T>* variable_t<S, T>::from_matrix_complex(const matrix_t<std::complex<T>>* mat, std::string dim_name, dimension_t<T>* new_dim) const {
+    size_t num_dims = this->get_num_dims();
+    size_t dim_ind = this->find_dim(dim_name);
+
+    dimension_t<T>** dims = new dimension_t<T>*[num_dims];
+    size_t cols = 1;
+    size_t rows = 0;
+    size_t traverse_shape[num_dims];
+    size_t* slice_shape;
+    slice_shape = new size_t[num_dims];
+    for (size_t i = 0; i < num_dims; i++) {
+        if (i != dim_ind) {
+            dims[i] = new dimension_t<T>(*this->get_dim(i));
+            traverse_shape[i] = dims[i]->get_size();
+            slice_shape[i] = 1;
+            cols *= dims[i]->get_size();
+        } else {
+            dims[i] = new dimension_t<T>(*new_dim);
+            traverse_shape[i] = 1;
+            slice_shape[i] = dims[i]->get_size();
+            rows = dims[i]->get_size();
+        }
+    }
+
+    if (cols != mat->get_cols() || rows != mat->get_rows()) {
+        throw eof_error_t("Matrix has incorrect dimensions for loading into a new variable");
+    }
+
+    variable_t<std::complex<T>, T>* var = new variable_t<std::complex<T>, T>(num_dims, dims);
+    var->set_missing_value(std::complex<T>(1.0,1.0)*10.f*(this->get_absmax()));
+
+    size_t c = 0;
+    nested_for(num_dims, traverse_shape, [&](size_t* indices) {
+        std::complex<T> slice[rows];
+        mat->get_col(c, (std::complex<T>*) slice);
+        var->set_slice(indices, (size_t*) slice_shape, (std::complex<T>*) slice);
+        c++;
+    });
+
     return var;
 }
 

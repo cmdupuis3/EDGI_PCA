@@ -1,23 +1,3 @@
-/***********************************************************************
- *                   GNU Lesser General Public License
- *
- * This file is part of the EDGI prototype package, developed by the 
- * GFDL Flexible Modeling System (FMS) group.
- *
- * EDGI is free software: you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at
- * your option) any later version.
- *
- * EDGI is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with EDGI.  If not, see <http://www.gnu.org/licenses/>.
- **********************************************************************/
-
 // Note: This is not intended to be a standalone implementation file.
 
 #include "error.hpp"
@@ -78,10 +58,10 @@ void eof_t<S, T>::match_dimensions(
     const dimension_t<T>* dim1,
     F cmp
 ) {
-    if (this->interp != nullptr) {
+    //if (this->interp != nullptr) {
         // TODO interpolate!
         
-    } else {
+    //} else {
         if (dim0->get_size() != dim1->get_size()) {
             throw eof_error_t("Input dimension lengths do not match");
         }
@@ -94,7 +74,7 @@ void eof_t<S, T>::match_dimensions(
                 throw eof_error_t("Input dimension values do not match");
             }
         }
-    }
+    //}
 }
 
 template<typename S, typename T>
@@ -352,7 +332,7 @@ void eof_t<S, T>::make_covariance_matrix(
     // TODO interpolate here? The data is organized into neat matrices so this
     // is probably the best place to interpolate
     
-    // This assumes that all matrices have the name number of rows. If we
+    // This assumes that all matrices have the same number of rows. If we
     // need to, we've already interpolated
     
     // kernel calls
@@ -423,7 +403,7 @@ std::vector<variable_t<S, T>*> eof_t<S, T>::get_eofs(
 template<typename S, typename T>
 eof_t<S, T>::eof_t() {
     this->svd = new basic_svd_t<T>();
-    this->interp = nullptr;
+    //this->interp = nullptr;
 }
 
 /**
@@ -432,9 +412,11 @@ eof_t<S, T>::eof_t() {
 template<typename S, typename T>
 eof_t<S, T>::~eof_t() {
     delete this->svd;
+    /*
     if (this->interp != nullptr) {
         delete this->interp;
     }
+    */
 }
 
 /**
@@ -449,6 +431,7 @@ void eof_t<S, T>::set_svd(svd_t<T>* svd) {
 /**
  * TODO
  */
+/*
 template<typename S, typename T>
 void eof_t<S, T>::set_interp(interp_t<S>* interp) {
     if (this->interp != nullptr) {
@@ -457,16 +440,19 @@ void eof_t<S, T>::set_interp(interp_t<S>* interp) {
     
     this->interp = interp;
 }
+*/
 
 /**
  * TODO
  */
+/*
 template<typename S, typename T>
 void eof_t<S, T>::no_interp() {
     if (this->interp != nullptr) {
         delete this->interp;
     }
 }
+*/
 
 /**
  * TODO

@@ -1,22 +1,3 @@
-/***********************************************************************
- *                   GNU Lesser General Public License
- *
- * This file is part of the EDGI prototype package, developed by the 
- * GFDL Flexible Modeling System (FMS) group.
- *
- * EDGI is free software: you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or (at
- * your option) any later version.
- *
- * EDGI is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with EDGI.  If not, see <http://www.gnu.org/licenses/>.
- **********************************************************************/
 
 #ifndef UTILS_HPP
 #define UTILS_HPP
@@ -70,7 +51,7 @@ T circ_cov(const T* v1, const T* v2, size_t length) {
     return cov;
 }
 
-
+// Untested and probably wrong somehow
 template<typename T>
 T circ_cov(const std::complex<T>* v1, const std::complex<T>* v2, size_t length) {
 
