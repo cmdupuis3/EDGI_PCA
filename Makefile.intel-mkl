@@ -3,12 +3,15 @@
 # Variable Definitions
 #===============================================================================
 
-NC_ROOT = /opt/netcdf/4.6.1/INTEL
-MKL_ROOT = /opt/intel/2019_up3/mkl
-FFTW_ROOT = /home/Christopher.Dupuis/fftw/intel
+NC_ROOT = /opt/cray/pe/netcdf/4.6.1.3/INTEL/16.0
+H5_ROOT = /opt/cray/pe/hdf5/1.10.2.0/INTEL/16.0
+MKL_ROOT = /opt/intel/compilers_and_libraries_2018.3.222/linux/mkl
+FFTW_ROOT = /opt/cray/pe/fftw/3.3.4.8/broadwell/
 
-NC_LIBDIR = ${NC_ROOT}/lib64
+NC_LIBDIR = ${NC_ROOT}/lib
 NC_INCDIR = ${NC_ROOT}/include
+H5_LIBDIR = ${H5_ROOT}/lib
+H5_INCDIR = ${H5_ROOT}/include
 MKL_LIBDIR = ${MKL_ROOT}/lib/intel64
 MKL_INCDIR = ${MKL_ROOT}/include
 FFTW_LIBDIR = ${FFTW_ROOT}/lib
@@ -19,10 +22,14 @@ OPENMP_FLAG := -qopenmp
 OPENMP_LIB := -liomp5
 
 LDLIBS :=                                                                      \
+	-L${NC_LIBDIR}                                                            \
+	-L${H5_LIBDIR}                                                            \
 	-L${MKL_LIBDIR}                                                            \
 	-L${FFTW_LIBDIR}
 
 LDFLAGS :=                                                                     \
+	-Wl,-rpath=${NC_LIBDIR}                                                            \
+	-Wl,-rpath=${H5_LIBDIR}                                                            \
 	-Wl,-rpath=${MKL_LIBDIR}                                                   \
 	-Wl,-rpath=${FFTW_LIBDIR}
 
@@ -48,12 +55,12 @@ ifdef with_plasma
 	LINALG_LIBS :=                                                             \
 		${PLASMA_LIBS}                                                         \
 		${MKL_LIBS}                                                            \
-		-lquark                                                                \
-		-lifport                                                               \
-		-lifcoremt                                                             \
-		-limf                                                                  \
-		-lsvml                                                                 \
-		-lirc
+		-lquark #                                                              \
+#		-lifport                                                               \
+#		-lifcoremt                                                             \
+#		-limf                                                                  \
+#		-lsvml                                                                 \
+#		-lirc
 
 	CMP_FLAG :=                                                                \
 		-DWITH_PLASMA
@@ -66,12 +73,12 @@ else
 	PLASMA_LIBS :=
 
 	LINALG_LIBS :=                                                             \
-		${MKL_LIBS}                                                            \
-		-lifport                                                               \
-		-lifcoremt                                                             \
-		-limf                                                                  \
-		-lsvml                                                                 \
-		-lirc
+		${MKL_LIBS} #                                                          \
+#		-lifport                                                               \
+#		-lifcoremt                                                             \
+#		-limf                                                                  \
+#		-lsvml                                                                 \
+#		-lirc
 
 	CMP_FLAG :=                                                                \
 		-DWITH_MKL
@@ -83,18 +90,20 @@ FFTW_FLAGS :=                                                                  \
 	-L${FFTW_LIBDIR}
 
 FFTW_LIBS :=                                                                   \
-	-lfftw3f                                                                   \
-	-lm
+#	-lfftw3f                                                                   \
+#	-lm
 
 NC_FLAGS :=                                                                    \
 	-I${NC_INCDIR}                                                             \
-	-L${NC_LIBDIR}
+	-L${NC_LIBDIR}                                                             \
+	-I${H5_INCDIR}                                                             \
+	-L${H5_LIBDIR}
 
 NETCDF_FLAGS :=                                                                \
 	${NC_FLAGS}
 
 NETCDF_LIBS :=                                                                 \
-	-lnetcdf
+	-lhdf5 -lhdf5_hl -lnetcdf
 
 FLAGS := ${CXXFLAGS} -Wall -Wextra -std=c++11 -Isrc/ -Isrc/linalg ${LDFLAGS} ${NETCDF_FLAGS} ${OPENMP_FLAG} ${LINALG_FLAGS} ${FFTW_FLAGS} ${CMP_FLAG}
 LIBS := ${LDLIBS} ${NETCDF_LIBS} ${LINALG_LIBS} ${FFTW_LIBS} ${OPENMP_LIB}
