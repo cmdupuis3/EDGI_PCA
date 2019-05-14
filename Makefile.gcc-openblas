@@ -3,12 +3,15 @@
 # Variable Definitions
 #===============================================================================
 
-NC_ROOT = /opt/netcdf/4.6.1/GNU
+NC_ROOT = /opt/cray/pe/netcdf/4.6.1.3/INTEL/16.0
+H5_ROOT = /opt/cray/pe/hdf5/1.10.2.0/INTEL/16.0
 OPENBLAS_ROOT = /home/Christopher.Dupuis/openblergs
-FFTW_ROOT = /home/Christopher.Dupuis/fftw/gnu
+FFTW_ROOT = /opt/cray/pe/fftw/3.3.8.1/broadwell/
 
-NC_LIBDIR = ${NC_ROOT}/lib64
+NC_LIBDIR = ${NC_ROOT}/lib
 NC_INCDIR = ${NC_ROOT}/include
+H5_LIBDIR = ${H5_ROOT}/lib
+H5_INCDIR = ${H5_ROOT}/include
 OPENBLAS_LIBDIR = ${OPENBLAS_ROOT}/lib
 OPENBLAS_INCDIR = ${OPENBLAS_ROOT}/include
 FFTW_LIBDIR = ${FFTW_ROOT}/lib
@@ -19,10 +22,14 @@ OPENMP_FLAG := -fopenmp
 OPENMP_LIB := -lgomp
 
 LDLIBS :=                                                                      \
+	-L${NC_LIBDIR}                                                            \
+	-L${H5_LIBDIR}                                                            \
 	-L${OPENBLAS_LIBDIR}                                                       \
 	-L${FFTW_LIBDIR}
 
 LDFLAGS :=                                                                     \
+	-Wl,-rpath=${NC_LIBDIR}                                                            \
+	-Wl,-rpath=${H5_LIBDIR}                                                            \
 	-Wl,-rpath=${OPENBLAS_LIBDIR}                                              \
 	-Wl,-rpath=${FFTW_LIBDIR}
 
@@ -140,6 +147,7 @@ load:
 	@echo 'Requirements:'
 	@echo '    GCC compiler supporting C++11'
 	@echo '    OpenBLAS library compiled with GCC'
+	@echo '    HDF5 library compiled with GCC (for NetCDF)'
 	@echo '    NetCDF library compiled with GCC'
 	@echo '    FFTW library compiled with GCC'
 	@echo '    (Optional) Plasma linear algebra library (must be version 2.8.0)'
