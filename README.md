@@ -8,8 +8,8 @@ functions (EOFs) from data stored in NetCDF files.
 
 This prototype version demonstrates parallel computation
 of several flavors of principal component analysis (PCA;
-basically the same as EOFs), including support for real-
-and complex-valued data, data stored in multiple files,
+basically the same as EOFs), including support for real- and
+complex-valued data, data stored in multiple files,
 PCA with multiple variables, and PCA of circular data.
 Any of these flavors of PCA may be computed along any
 dimension of the user's choice, and may have missing rows
@@ -19,7 +19,7 @@ Parallelism is implemented with OpenMP, and is well-suited
 to experiments on a desktop or a single HPC node.
 
 For simple cases, the necessary command is rarely longer
-than a line or two on a command line. See "EDGIer APIs:
+than a line or two on a command line. See the examples below, and "EDGIer APIs:
 Scalable, Feature-Rich Empirical Orthogonal Function 
 Analysis of Distributed Geoscientific Data That 'Just Works'"
 for more information.
@@ -31,8 +31,6 @@ the option of using the PLASMA package. Example makefiles (Makefile.intel-mkl, M
 are included; one should be able to copy it as "Makefile" and run "make build" to build the edgi executable.
 Run "make help" to show build instructions. Some library paths in each makefile will need to be set by the user,
 and have been gathered at the top.
-
-A GCC/OpenBLAS configuration is also in the works and should be available soon.
 
 ## Usage:
     edgi <options>
@@ -50,7 +48,9 @@ A GCC/OpenBLAS configuration is also in the works and should be available soon.
                               Units assumed to be radians. For use with real-valued data.
     -S         ... (optional) Flag for spectral data. Assumes -d refers to an angular frequency
                               variable, and weights covariance calculation for T-series accordingly. 
-    -d <i>     ... (required) Time dimension name.
+    -H         ... (optional) Calculate analytic signal before running. Uses a Hilbert transform on
+                              a real-valued variable to generate complex-valued results. 
+    -d <i>     ... (required) T-dimension name, i.e., the dimension the EOFs are calculated along.
     -n <i>     ... (required) Set the number of cores to use.
     
 ### Examples:
@@ -64,14 +64,17 @@ A GCC/OpenBLAS configuration is also in the works and should be available soon.
 * EOFs of two variables simultaneously, both split across two files:  
     `edgi -f file1.nc:file1_eofs.nc file2.nc:file2_eofs.nc -v var1:var1_eofs var2:var2_eofs -d time -n 32`
 
+* Complex-valued EOFs of a real-valued variable using analytic signals:  
+    `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -d time -n 32 -H`
+    
 * Complex variable stored as component variables:  
     `edgi -f file1.nc:file1_eofs.nc -v var_re:var_eofs_re -c var_im:var_im_eofs -d time -n 32`
 
 * Directional variable (e.g., wind stress direction, ocean current direction, etc):  
-    `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -C -d time -n 32`
+    `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -d time -n 32 -C`
 
 * Spectral variable:  
-    `edgi -f file1.nc:file1_eofs.nc -v svar:svar_eofs -S -d time -n 32`
+    `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -d time -n 32 -S`
 
 * EOFs along ensemble member dimension:  
     `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -d member -n 32`
