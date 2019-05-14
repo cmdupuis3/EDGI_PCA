@@ -46,7 +46,6 @@ ifdef with_plasma
 		-lcoreblas
 
 	LINALG_LIBS :=                                                             \
-		-llapacke                                                              \
 		${PLASMA_LIBS}                                                         \
 		${MKL_LIBS}                                                            \
 		-lquark                                                                \
@@ -67,7 +66,6 @@ else
 	PLASMA_LIBS :=
 
 	LINALG_LIBS :=                                                             \
-		-llapacke                                                              \
 		${MKL_LIBS}                                                            \
 		-lifport                                                               \
 		-lifcoremt                                                             \
