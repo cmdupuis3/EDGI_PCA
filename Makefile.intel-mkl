@@ -4,7 +4,8 @@
 #===============================================================================
 
 NC_PATH = /opt/netcdf/4.6.1/INTEL
-MKLROOT = /usr/local/intel_compilers/17.0.3/mkl
+MKLROOT = /opt/intel/2019_up3/mkl
+FFTWROOT = /home/Christopher.Dupuis/fftw
 
 
 CXX := icpc
@@ -68,6 +69,13 @@ else
 
 endif
 
+FFTW_FLAGS :=                                                                  \
+	-I${FFTWROOT}/include                                                      \
+	-L${FFTWROOT}/lib
+
+FFTW_LIBS :=                                                                   \
+	-lfftw3f                                                                   \
+	-lm
 
 NC_FLAGS :=                                                                    \
 	-I${NC_PATH}/include                                                       \
@@ -79,8 +87,8 @@ NETCDF_FLAGS :=                                                                \
 NETCDF_LIBS :=                                                                 \
 	-lnetcdf
 
-FLAGS := ${CXXFLAGS} -Wall -Wextra -std=c++11 -Isrc/ -Isrc/linalg ${LDFLAGS} ${NETCDF_FLAGS} ${OPENMP_FLAG} ${LINALG_FLAGS} ${CMP_FLAG}
-LIBS := ${LDLIBS} ${NETCDF_LIBS} ${LINALG_LIBS} ${OPENMP_LIB}
+FLAGS := ${CXXFLAGS} -Wall -Wextra -std=c++11 -Isrc/ -Isrc/linalg ${LDFLAGS} ${NETCDF_FLAGS} ${OPENMP_FLAG} ${LINALG_FLAGS} ${FFTW_FLAGS} ${CMP_FLAG}
+LIBS := ${LDLIBS} ${NETCDF_LIBS} ${LINALG_LIBS} ${FFTW_LIBS} ${OPENMP_LIB}
 PROD := -O2
 DB := ${DBFLAGS} -O0 -g -DDEBUG
 
@@ -125,7 +133,7 @@ ${BIN_DEBUG}: ${ALL_SOURCE}
 
 .PHONY: clean
 clean:
-	rm -f bin/*.x bin/*.o
+	rm -f bin/*.x bin/*.o edgi edgi_debug
 
 .PHONY: load
 load:
@@ -135,6 +143,7 @@ load:
 	@echo 'Requirements:'
 	@echo '    Intel compiler supporting C++11'
 	@echo '    NetCDF library compiled with Intel'
+	@echo '    FFTW library compiled with Intel'
 	@echo '    (Optional) Plasma linear algebra library (must be version 2.8.0)'
 	@echo ''
 	@echo 'Builds:'
