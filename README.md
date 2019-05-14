@@ -26,9 +26,11 @@ for more information.
 
 ## Compilation:
 
-Currently, only builds with the Intel compiler and MKL are supported, with the option of
-using the PLASMA package. An example makefile (Makefile.intel-mkl) is included; one should
-be able to copy it as "Makefile" and run "make build" to build the edgi executable.
+Currently, builds with the Intel compiler plus MKL, and GCC plus OpenBLAS and FFTW are supported, with 
+the option of using the PLASMA package. Example makefiles (Makefile.intel-mkl, Makefile.gcc-openblas) 
+are included; one should be able to copy it as "Makefile" and run "make build" to build the edgi executable.
+Run "make help" to show build instructions. Some library paths in each makefile will need to be set by the user,
+and have been gathered at the top.
 
 A GCC/OpenBLAS configuration is also in the works and should be available soon.
 
