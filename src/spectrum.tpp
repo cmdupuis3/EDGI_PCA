@@ -83,7 +83,7 @@ std::vector<variable_t<std::complex<T>, T>*> spectrum_t<S, T>::calculate(
 
 template<typename S, typename T>
 std::vector<variable_t<std::complex<T>, T>*> spectrum_t<S, T>::calculate(
-    std::initializer_list<variable_t<S, T>*> vars,
+    std::initializer_list<variable_t<S, T>*> input_vars_list,
     const std::string input_dim,
     const size_t input_nthreads
 ) {
@@ -161,7 +161,7 @@ std::vector<variable_t<std::complex<T>, T>*> spectrum_t<S, T>::inverse(
 
 template<typename S, typename T>
 std::vector<variable_t<std::complex<T>, T>*> spectrum_t<S, T>::inverse(
-    std::initializer_list<variable_t<S, T>*> vars,
+    std::initializer_list<variable_t<S, T>*> input_vars_list,
     const std::string input_dim,
     const size_t input_nthreads
 ) {
@@ -239,7 +239,7 @@ std::vector<variable_t<std::complex<T>, T>*> spectrum_t<S, T>::analytic(
 
 template<typename S, typename T>
 std::vector<variable_t<std::complex<T>, T>*> spectrum_t<S, T>::analytic(
-    std::initializer_list<variable_t<S, T>*> vars,
+    std::initializer_list<variable_t<S, T>*> input_vars_list,
     const std::string input_dim,
     const size_t input_nthreads
 ) {

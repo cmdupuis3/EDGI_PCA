@@ -3,20 +3,31 @@
 # Variable Definitions
 #===============================================================================
 
-NC_PATH = /opt/netcdf/4.6.1/INTEL
-MKLROOT = /opt/intel/2019_up3/mkl
-FFTWROOT = /home/Christopher.Dupuis/fftw
+NC_ROOT = /opt/netcdf/4.6.1/INTEL
+MKL_ROOT = /opt/intel/2019_up3/mkl
+FFTW_ROOT = /home/Christopher.Dupuis/fftw/intel
 
+NC_LIBDIR = ${NC_ROOT}/lib64
+NC_INCDIR = ${NC_ROOT}/include
+MKL_LIBDIR = ${MKL_ROOT}/lib/intel64
+MKL_INCDIR = ${MKL_ROOT}/include
+FFTW_LIBDIR = ${FFTW_ROOT}/lib
+FFTW_INCDIR = ${FFTW_ROOT}/include
 
 CXX := icpc
 OPENMP_FLAG := -qopenmp
 OPENMP_LIB := -liomp5
 
 LDLIBS :=                                                                      \
-	-L${MKLROOT}/lib/intel64
+	-L${MKL_LIBDIR}                                                            \
+	-L${FFTW_LIBDIR}
 
 LDFLAGS :=                                                                     \
-	-Wl,-rpath=${MKLROOT}/lib/intel64
+	-Wl,-rpath=${MKL_LIBDIR}                                                   \
+	-Wl,-rpath=${FFTW_LIBDIR}
+
+LINALG_FLAGS :=                                                                \
+	-I${MKL_INCDIR}
 
 MKL_LIBS :=                                                                    \
 	-lmkl_intel_lp64                                                           \
@@ -25,7 +36,7 @@ MKL_LIBS :=                                                                    \
 
 ifdef with_plasma
 
-	LINALG_FLAGS :=                                                            \
+	LINALG_FLAGS +=                                                            \
 		-I${PLASMA_INCDIR}                                                     \
 		-L${PLASMA_LIBDIR}
 
@@ -49,7 +60,7 @@ ifdef with_plasma
 		-DWITH_PLASMA
 
 else
-	LINALG_FLAGS :=                                                            \
+	LINALG_FLAGS +=                                                            \
 		-DMKL_Complex8="std::complex<float>"                                   \
 		-DMKL_Complex16="std::complex<double>"
 
@@ -70,16 +81,16 @@ else
 endif
 
 FFTW_FLAGS :=                                                                  \
-	-I${FFTWROOT}/include                                                      \
-	-L${FFTWROOT}/lib
+	-I${FFTW_INCDIR}                                                           \
+	-L${FFTW_LIBDIR}
 
 FFTW_LIBS :=                                                                   \
 	-lfftw3f                                                                   \
 	-lm
 
 NC_FLAGS :=                                                                    \
-	-I${NC_PATH}/include                                                       \
-	-L${NC_PATH}/lib64
+	-I${NC_INCDIR}                                                             \
+	-L${NC_LIBDIR}
 
 NETCDF_FLAGS :=                                                                \
 	${NC_FLAGS}
@@ -142,6 +153,7 @@ load:
 	@echo ''
 	@echo 'Requirements:'
 	@echo '    Intel compiler supporting C++11'
+	@echo '    Intel MKL library'
 	@echo '    NetCDF library compiled with Intel'
 	@echo '    FFTW library compiled with Intel'
 	@echo '    (Optional) Plasma linear algebra library (must be version 2.8.0)'
