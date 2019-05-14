@@ -25,9 +25,13 @@
 #include "utils.hpp"
 #include "debug.hpp"
 
+#include <complex>
 #include <iostream>
+
+
 using std::cout;
 using std::endl;
+using std::complex;
 
 static const std::string MISSING_VALUE_NAME = "_FillValue";
 
@@ -83,41 +87,41 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
     if (!file->has_var(name)) {
         throw eof_error_t("Variable \"" + name + "\" does not exist in this NetCDF file");
     }
-    
+
     netcdf_var_t var_id = file->get_var(name);
     size_t num_dims = file->get_var_n_dims(var_id);
     dimension_t<T>** dims = new dimension_t<T>*[num_dims];
-    
+
     // Load the dimensions
     for (size_t i = 0; i < num_dims; i++) {
         netcdf_dim_t dim_id = file->get_var_dim(var_id, i);
         std::string dim_name = file->get_dim_name(dim_id);
-        
+
         try {
             dims[i] = new dimension_t<T>(dim_name, file);
-            
+
         } catch (eof_error_t err) {
             // Cleanup memory allocations
             for (size_t j = 0; j < num_dims; j++) {
                 delete dims[j];
             }
             delete[] dims;
-            
+
             // Rethrow the exception
             throw;
         }
     }
-    
+
     // Try loading the missing value
     if (file->has_attr(var_id, MISSING_VALUE_NAME)) {
         this->set_missing_value(file->get_attr<S>(var_id, MISSING_VALUE_NAME));
     } else if (file->has_fill(var_id)) {
         this->set_missing_value(file->get_fill<S>(var_id));
     }
-    
+
     // Set the name and dimensions
     this->set_dims(num_dims, dims);
-    
+
     // Load the data from NetCDF
     if (this->data != nullptr) {
         delete[] this->data;
@@ -125,16 +129,16 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
 
     // TODO Change to get_vara_vals to fix strided accesses later
     this->data = file->get_var_vals<S>(var_id);
-    
+
     /*
     // TODO Change all missing values to NaN
-    
+
     if (this->has_missing_value() && std::numeric_limits<S>::has_quiet_NaN) {
         size_t size = 1;
         for (size_t i = 0; i < this->get_num_dims(); i++) {
             size *= this->get_dim(i)->get_size();
         }
-        
+
         S missing_value = this->get_missing_value();
         S nan_value = std::numeric_limits<S>::quiet_NaN();
         for (size_t i = 0; i < size; i++) {
@@ -143,7 +147,7 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
             }
         }
     }
-    
+
     // TODO should the missing value be unset now? set to NaN?
     */
 }
@@ -185,17 +189,17 @@ void variable_t<S, T>::clear_dims() {
         delete[] this->dims;
         this->dims = nullptr;
     }
-    
+
     if (this->striding != nullptr) {
         delete[] this->striding;
         this->striding = nullptr;
     }
-    
+
     if (this->data != nullptr) {
         delete[] this->data;
         this->data = nullptr;
     }
-    
+
     this->num_dims = 0;
 }
 
@@ -219,7 +223,7 @@ bool variable_t<S, T>::has_dim(const std::string name) const {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -230,7 +234,7 @@ size_t variable_t<S, T>::find_dim(const std::string name) const {
             return i;
         }
     }
-    
+
     throw eof_error_t("Requested dimension does not exist");
 }
 
@@ -264,7 +268,7 @@ void variable_t<S, T>::set_dims(size_t num_dims, dimension_t<T>** dims) {
     this->clear_dims();
     this->num_dims = num_dims;
     this->dims = dims;
-    
+
     // Load the striding
     this->striding = new size_t[num_dims];
     size_t product = 1;
@@ -272,7 +276,7 @@ void variable_t<S, T>::set_dims(size_t num_dims, dimension_t<T>** dims) {
         striding[num_dims - 1 - i] = product;
         product *= dims[num_dims - 1 - i]->get_size();
     }
-    
+
     // Create a new data array as large as the product of all dimension sizes
     this->data = new S[product];
 }
@@ -283,7 +287,7 @@ void variable_t<S, T>::set_dims(size_t num_dims, const dimension_t<T>** dims) {
     for (size_t i = 0; i < num_dims; i++) {
         new_dims[i] = new dimension_t<T>(*dims[i]);
     }
-    
+
     this->set_dims(num_dims, new_dims);
 }
 
@@ -302,7 +306,7 @@ void variable_t<S, T>::set_missing_value(S missing_value) {
     this->missing_value = missing_value;
     this->contains_missing_value = true;
 }
-    
+
 template<typename S, typename T>
 void variable_t<S, T>::unset_missing_value() {
     this->contains_missing_value = false;
@@ -331,7 +335,7 @@ void variable_t<S, T>::get_slice(const size_t* start, const size_t* size, S* sli
     size_t len = this->get_num_dims();
     size_t start_index = dot_product<size_t>(start, this->striding, len);
     size_t n = 0;
-    
+
     nested_for(this->get_num_dims(), size, [&, this](size_t* indices) {
         size_t index = start_index + dot_product<size_t>(indices, this->striding, len);
         slice[n] = this->data[index];
@@ -344,7 +348,7 @@ void variable_t<S, T>::set_slice(const size_t* start, const size_t* size, const 
     size_t len = this->get_num_dims();
     size_t start_index = dot_product<size_t>(start, this->striding, len);
     size_t n = 0;
-    
+
     nested_for(this->get_num_dims(), size, [&, this](size_t* indices) {
         size_t index = start_index + dot_product<size_t>(indices, this->striding, len);
         this->data[index] = slice[n];
@@ -362,7 +366,7 @@ void write_var(const variable_t<S, T>* var, const std::string name, netcdf_file_
     netcdf_dim_t dim_ids[var->get_num_dims()];
     for (size_t i = 0; i < var->get_num_dims(); i++) {
         const dimension_t<T>* dim = var->get_dim(i);
-        
+
         // Define this dimension if it doesn't already exist
         // Either way, get the dimension ID
         if (!file->has_dim(dim->get_name())) {
@@ -372,7 +376,7 @@ void write_var(const variable_t<S, T>* var, const std::string name, netcdf_file_
         } else {
             dim_ids[i] = file->get_dim(dim->get_name());
         }
-        
+
         // Define this dimension's variable if it doesn't already exist
         // Either way, get the variable ID
         netcdf_var_t var_id;
@@ -383,18 +387,18 @@ void write_var(const variable_t<S, T>* var, const std::string name, netcdf_file_
         } else {
             var_id = file->get_var(dim->get_name());
         }
-        
+
         // Set this dimension's values
         file->set_var_vals<T>(var_id, dim->get_values());
     }
-    
+
     // Define this variable if it doesn't already exist
     // Either way, get the variable ID
     netcdf_var_t var_id;
     if (!file->has_var(name)) {
         file->begin_def();
         var_id = file->def_var<S>(name, var->get_num_dims(), dim_ids);
-        
+
         // Write the fill value, if applicable
         if (var->has_missing_value()) {
             file->set_fill(var_id, var->get_missing_value(), MISSING_VALUE_NAME);
@@ -428,7 +432,7 @@ void write_complex_var(const variable_t<std::complex<S>, T>* var, const std::str
     netcdf_dim_t dim_ids[var->get_num_dims()];
     for (size_t i = 0; i < var->get_num_dims(); i++) {
         const dimension_t<T>* dim = var->get_dim(i);
-        
+
         // Define this dimension if it doesn't already exist
         // Either way, get the dimension ID
         if (!file->has_dim(dim->get_name())) {
@@ -438,7 +442,7 @@ void write_complex_var(const variable_t<std::complex<S>, T>* var, const std::str
         } else {
             dim_ids[i] = file->get_dim(dim->get_name());
         }
-        
+
         // Define this dimension's variable if it doesn't already exist
         // Either way, get the variable ID
         netcdf_var_t var_id;
@@ -449,12 +453,12 @@ void write_complex_var(const variable_t<std::complex<S>, T>* var, const std::str
         } else {
             var_id = file->get_var(dim->get_name());
         }
-        
+
         // Set this dimension's values and update the total size
         file->set_var_vals<T>(var_id, dim->get_values());
         total_size *= dim->get_size();
     }
-    
+
     // Define this variable if it doesn't already exist
     // Either way, get the variable ID
     netcdf_var_t var_re_id;
@@ -475,7 +479,7 @@ void write_complex_var(const variable_t<std::complex<S>, T>* var, const std::str
     if (!file->has_var(name_im)) {
         file->begin_def();
         var_im_id = file->def_var<S>(name_im, var->get_num_dims(), dim_ids);
-        
+
         // Write the fill value, if applicable
         if (var->has_missing_value()) {
             file->set_fill(var_im_id, var->get_missing_value().imag(), MISSING_VALUE_NAME);
@@ -484,7 +488,7 @@ void write_complex_var(const variable_t<std::complex<S>, T>* var, const std::str
     } else {
         var_im_id = file->get_var(name_im);
     }
-    
+
     // Separate the real and imaginary parts
     S* data_re = new S[total_size];
     S* data_im = new S[total_size];
@@ -531,7 +535,7 @@ template<typename S, typename T>
 matrix_t<S>* variable_t<S, T>::to_matrix(std::string dim_name) const {
     size_t num_dims = this->get_num_dims();
     size_t dim_ind = this->find_dim(dim_name);
-    
+
     size_t cols = 1;
     size_t rows = 0;
     size_t traverse_shape[num_dims];
@@ -548,7 +552,7 @@ matrix_t<S>* variable_t<S, T>::to_matrix(std::string dim_name) const {
             rows = size;
         }
     }
-    
+
     matrix_t<S>* mat = new matrix_t<S>(rows, cols);
     size_t c = 0;
     nested_for(num_dims, traverse_shape, [&](size_t* indices) {
@@ -557,15 +561,14 @@ matrix_t<S>* variable_t<S, T>::to_matrix(std::string dim_name) const {
         mat->set_col(c, (S*) slice);
         c++;
     });
-    
+
     return mat;
 }
 
-
-
+/*
 template<typename S, typename T>
 const S get_var_absmax(const variable_t<S, T>* var) {
-    
+
     size_t product = 1;
     for (size_t i = 0; i < var->get_num_dims(); i++) {
         product *= var->get_dims()[var->get_num_dims() - 1 - i]->get_size();
@@ -581,7 +584,7 @@ const S get_var_absmax(const variable_t<S, T>* var) {
 
 template<typename S, typename T>
 const std::complex<S> get_var_absmax_complex(const variable_t<std::complex<S>, T>* var) {
-    
+
     size_t product = 1;
     for (size_t i = 0; i < var->get_num_dims(); i++) {
         product *= var->get_dims()[var->get_num_dims() - 1 - i]->get_size();
@@ -596,21 +599,47 @@ const std::complex<S> get_var_absmax_complex(const variable_t<std::complex<S>, T
 
     return std::complex<S>(absmax_re, absmax_im);
 }
+*/
+
+template<typename S, typename T>
+const S variable_t<S, T>::get_absmax() const {
+
+    size_t product = 1;
+    for (size_t i = 0; i < this->get_num_dims(); i++) {
+        product *= this->get_dims()[this->get_num_dims() - 1 - i]->get_size();
+    }
+
+    S absmax = 0;
+    for (size_t i = 0; i < product; i++){
+        if(absmax < abs(this->get_data()[i])) absmax = abs(this->get_data()[i]);
+    }
+
+    return absmax;
+}
 
 template<>
-const float variable_t<float, float>::get_absmax() const {
-    return get_var_absmax(this);
-}
-template<>
 const std::complex<float> variable_t<std::complex<float>, float>::get_absmax() const {
-    return get_var_absmax_complex(this);
+
+    size_t product = 1;
+    for (size_t i = 0; i < this->get_num_dims(); i++) {
+        product *= this->get_dims()[this->get_num_dims() - 1 - i]->get_size();
+    }
+
+    float absmax_re = 0;
+    float absmax_im = 0;
+    for (size_t i = 0; i < product; i++){
+        if(absmax_re < abs(this->get_data()[i].real())) absmax_re = abs(this->get_data()[i].real());
+        if(absmax_im < abs(this->get_data()[i].imag())) absmax_im = abs(this->get_data()[i].imag());
+    }
+
+    return std::complex<float>(absmax_re, absmax_im);
 }
 
 template<typename S, typename T>
 variable_t<S, T>* variable_t<S, T>::from_matrix(const matrix_t<S>* mat, std::string dim_name, dimension_t<T>* new_dim) const {
     size_t num_dims = this->get_num_dims();
     size_t dim_ind = this->find_dim(dim_name);
-    
+
     dimension_t<T>** dims = new dimension_t<T>*[num_dims];
     size_t cols = 1;
     size_t rows = 0;
@@ -630,11 +659,11 @@ variable_t<S, T>* variable_t<S, T>::from_matrix(const matrix_t<S>* mat, std::str
             rows = dims[i]->get_size();
         }
     }
-    
+
     if (cols != mat->get_cols() || rows != mat->get_rows()) {
         throw eof_error_t("Matrix has incorrect dimensions for loading into a new variable");
     }
-    
+
     variable_t<S, T>* var = new variable_t<S, T>(num_dims, dims);
     var->set_missing_value(10.f*(this->get_absmax()));
 
@@ -645,7 +674,49 @@ variable_t<S, T>* variable_t<S, T>::from_matrix(const matrix_t<S>* mat, std::str
         var->set_slice(indices, (size_t*) slice_shape, (S*) slice);
         c++;
     });
-    
+
+    return var;
+}
+template<typename S, typename T>
+variable_t<std::complex<T>, T>* variable_t<S, T>::from_matrix_complex(const matrix_t<std::complex<T>>* mat, std::string dim_name, dimension_t<T>* new_dim) const {
+    size_t num_dims = this->get_num_dims();
+    size_t dim_ind = this->find_dim(dim_name);
+
+    dimension_t<T>** dims = new dimension_t<T>*[num_dims];
+    size_t cols = 1;
+    size_t rows = 0;
+    size_t traverse_shape[num_dims];
+    size_t* slice_shape;
+    slice_shape = new size_t[num_dims];
+    for (size_t i = 0; i < num_dims; i++) {
+        if (i != dim_ind) {
+            dims[i] = new dimension_t<T>(*this->get_dim(i));
+            traverse_shape[i] = dims[i]->get_size();
+            slice_shape[i] = 1;
+            cols *= dims[i]->get_size();
+        } else {
+            dims[i] = new dimension_t<T>(*new_dim);
+            traverse_shape[i] = 1;
+            slice_shape[i] = dims[i]->get_size();
+            rows = dims[i]->get_size();
+        }
+    }
+
+    if (cols != mat->get_cols() || rows != mat->get_rows()) {
+        throw eof_error_t("Matrix has incorrect dimensions for loading into a new variable");
+    }
+
+    variable_t<std::complex<T>, T>* var = new variable_t<std::complex<T>, T>(num_dims, dims);
+    var->set_missing_value(std::complex<T>(1.0,1.0)*10.f*(this->get_absmax()));
+
+    size_t c = 0;
+    nested_for(num_dims, traverse_shape, [&](size_t* indices) {
+        std::complex<T> slice[rows];
+        mat->get_col(c, (std::complex<T>*) slice);
+        var->set_slice(indices, (size_t*) slice_shape, (std::complex<T>*) slice);
+        c++;
+    });
+
     return var;
 }
 
@@ -654,7 +725,7 @@ variable_t<std::complex<S>, T>* make_complex_variable(variable_t<S, T>* real, va
     if (real->get_num_dims() != imag->get_num_dims()) {
         throw eof_error_t("Cannot make a complex variable from variables with different numbers of dimensions.");
     }
-    
+
     size_t size = 1;
     size_t num_dims = real->get_num_dims();
     dimension_t<T>** dims = new dimension_t<T>*[num_dims];
@@ -664,17 +735,17 @@ variable_t<std::complex<S>, T>* make_complex_variable(variable_t<S, T>* real, va
                 delete dims[j];
             }
             delete[] dims;
-            
+
             throw eof_error_t("Cannot make a complex variable from variables with different dimensions.");
         }
-        
+
         dims[i] = new dimension_t<T>(*real->get_dim(i));
         size *= dims[i]->get_size();
     }
-    
+
     // Create the resulting complex variable
     variable_t<std::complex<S>, T>* result = new variable_t<std::complex<S>, T>(num_dims, dims);
-    
+
     // Get missing values from the real and imaginary parts
     S missing_re;
     S missing_im;
@@ -698,14 +769,14 @@ variable_t<std::complex<S>, T>* make_complex_variable(variable_t<S, T>* real, va
     for (size_t i = 0; i < size; i++) {
         S re = real->data[i];
         S im = imag->data[i];
-        
+
         if ((has_missing_re && re == missing_re) || (has_missing_im && im == missing_im)) {
             result->data[i] = missing;
         } else {
             result->data[i] = std::complex<S>(re, im);
         }
     }
-    
+
     return result;
 }
 
@@ -716,7 +787,7 @@ void variable_t<S, T>::convert(std::function<S(S)> func) {
     for (size_t i = 0; i < num_dims; i++) {
         size *= this->get_dim(i)->get_size();
     }
-    
+
     for (size_t i = 0; i < size; i++) {
         this->data[i] = func(this->data[i]);
     }

@@ -24,21 +24,21 @@
 #include <ctime>
 #include <omp.h>
 #include "src/eof_analysis.hpp"
+#include "src/debug.hpp"
 
 #ifdef WITH_PLASMA
     #include "linalg/plasma_svd.hpp"
     #define SVD_TYPE plasma_svd_t
-#endif
-#ifdef WITH_MKL
+#elif WITH_MKL
     #include "linalg/mkl_svd.hpp"
     #define SVD_TYPE mkl_svd_t
-#endif
-#ifdef WITH_OPENBLAS
+#elif WITH_OPENBLAS
     #include "linalg/openblas_svd.hpp"
     #define SVD_TYPE openblas_svd_t
 #endif
 
-#include "src/debug.hpp"
+#include "src/fftw_fft.hpp"
+
 
 using std::string;
 using std::cout;
@@ -64,26 +64,26 @@ int example_1(int argc, char** argv) {
         cerr << "Not enough arguments" << endl;
         return 1;
     }
-    
+
     string file_name(argv[1]);
     string var_name(argv[2]);
     string dim_name(argv[3]);
-    
+
     // Open the file
     netcdf_file_t file(file_name, NETCDF_WRITE);
-    
+
     // Load the input data
     real_variable_t<float> var = real_variable_t<float>(var_name, &file);
-    
+
     // Calculate the EOFs
     real_eof_t<float> eof;
     eof.set_svd(new SVD_TYPE<float>(32));
     vector<real_variable_t<float>*> vars = eof.calculate({&var}, dim_name, 32, false);
-    
+
     // Write the output data
     vars[0]->write(var_name + "_eof", &file);
     delete vars[0];
-    
+
     return 0;
 }
 
@@ -92,33 +92,33 @@ int example_2(int argc, char** argv) {
         cerr << "Not enough arguments" << endl;
         return 1;
     }
-    
+
     string file_in_name(argv[1]);
     string file_out_name(argv[2]);
     string real_name(argv[3]);
     string imag_name(argv[4]);
     string out_name(argv[5]);
     string dim_name(argv[6]);
-    
+
     // Open the input file and load the data
     netcdf_file_t file_in(file_in_name, NETCDF_READ);
     real_variable_t<float> real = real_variable_t<float>(real_name, &file_in);
     real_variable_t<float> imag = real_variable_t<float>(imag_name, &file_in);
     complex_variable_t<float>* var = make_complex_variable(&real, &imag);
-    
+
     // Calculate the EOFs
     complex_eof_t<float> eof;
     eof.set_svd(new SVD_TYPE<float>(32));
     vector<complex_variable_t<float>*> vars = eof.calculate({var}, dim_name, 32, false);
-    
+
     // Open the output file and write the resulting EOFs
     netcdf_file_t file_out(file_out_name, NETCDF_WRITE);
     vars[0]->write_complex(out_name + "_eof_re", out_name + "_eof_im", &file_out);
-    
+
     // Clean up
     delete var;
     delete vars[0];
-    
+
     return 0;
 }
 
@@ -161,10 +161,10 @@ struct arg_data_t {
 
 bool parse_args(vector<string> argv, arg_data_t* data) {
     data->dim_in = "";
-    data->do_hilbert = false;
+    data->do_hilbert = true;
     data->is_spectral = false;
     data->is_circular = false;
-    
+
     enum {
         ARG_NONE,
         ARG_DIM,
@@ -176,7 +176,7 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
         ARG_FILE,
         ARG_NCORES
     } state = ARG_NONE;
-    
+
     for (string arg : argv) {
         if (arg[0] == '-') {
             if (arg == "-d") {
@@ -190,8 +190,7 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
             } else if (arg == "-S") {
                 state = ARG_SPECTRAL;
             } else if (arg == "-H") {
-                FATAL("[ERROR] Analytic signals with Hilbert transforms are currently unavailable.")
-//                data->do_hilbert = true;
+                state = ARG_DO_HILBERT;
             } else if (arg == "-f") {
                 state = ARG_FILE;
             } else if (arg == "-n") {
@@ -205,11 +204,11 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
             continue;
         }
 
-    
+
 
          if (state == ARG_DIM) {
             data->dim_in = arg;
-            
+
         } else if (state == ARG_VAR) {
             vector<string> words = split(arg, ':');
             size_t size = words.size();
@@ -220,7 +219,7 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
                 data->vars_in.push_back(words[0]);
                 data->vars_out.push_back(words[size - 1]);
             }
-            
+
         } else if (state == ARG_CVAR) {
             vector<string> words = split(arg, ':');
             size_t size = words.size();
@@ -239,6 +238,9 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
         } else if (state == ARG_SPECTRAL) {
             data->is_spectral = true;
 
+        } else if (state == ARG_DO_HILBERT) {
+            data->do_hilbert = true;
+
         } else if (state == ARG_FILE) {
             vector<string> words = split(arg, ':');
             size_t size = words.size();
@@ -253,7 +255,7 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
         } else if (state == ARG_NCORES) {
             data->ncores_in = stoi(arg);
             omp_set_num_threads(data->ncores_in);
-            
+
         } else {
             cerr << "[ERROR] Expected a flag '-f', '-v', '-c', '-C', '-S', '-H', '-d', or '-n'." << endl;
             return false;
@@ -276,7 +278,7 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
        data->cvars_in.size() == 0){
         cerr << "[ERROR] Spectral data must have real and imaginary components." << endl;
     }
-    
+
     if (data->dim_in == "") {
         cerr << "[ERROR] No dimension specified." << endl;
         return false;
@@ -287,7 +289,7 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
         cerr << "[ERROR] No files specified." << endl;
         return false;
     }
-    
+
     return true;
 }
 
@@ -297,7 +299,7 @@ void usage(string cmd) {
     cerr << "    " << cmd << " <options>" << endl;
     cerr << endl;
     cerr << "Options:" << endl;
-    cerr << "    -h             Show this help message." << endl;
+    cerr << "    -h                        Show this help message." << endl;
     cerr << "    -f <i>:<o> ... (required) Read data from file <i> and write to file <o>. Multiple" << endl;
     cerr << "                              <i>:<o> pairs can be specified and separated by spaces." << endl;
     cerr << "    -v <i>:<o> ... (required) Calculate EOFs on variable <i> and output as variable <o>. Multiple" << endl;
@@ -309,15 +311,15 @@ void usage(string cmd) {
     cerr << "                              Units assumed to be radians. For use with real-valued data." << endl;
     cerr << "    -S         ... (optional) Flag for spectral data. Assumes -d refers to an angular frequency" << endl;
     cerr << "                              variable, and weights covariance calculation for T-series accordingly. " << endl;
-//    cerr << "    -H         ... (optional) Calculate analytic signal before running. Uses a Hilbert transform on" << endl;
-//    cerr << "                              real- or complex-valued variable to generate complex-valued results." << endl;
+    cerr << "    -H         ... (optional) Calculate analytic signal before running. Uses a Hilbert transform on" << endl;
+    cerr << "                              a real- or complex-valued variable to generate complex-valued results." << endl;
     cerr << "    -d <i>     ... (required) Time dimension name." << endl;
     cerr << "    -n <i>     ... (required) Set the number of cores to use." << endl;
     cerr << endl;
 }
 
 // Sample usage:
-//     bin/main.x -f sample.nc:sample_eofs.nc -v a:a_eof b:b_eof c:c_eof -ai:ai_eof bi:bi_eof ci:ci_eof -d time:eof_coef 
+//     bin/main.x -f sample.nc:sample_eofs.nc -v a:a_eof b:b_eof c:c_eof -ai:ai_eof bi:bi_eof ci:ci_eof -d time:eof_coef
 
 int basic_interface(int argc, char** argv) {
     arg_data_t args;
@@ -327,11 +329,11 @@ int basic_interface(int argc, char** argv) {
     }
 
     cout << endl << args.ncores_in << " cores: ";
-    
+
     time_t start = time(nullptr);
     time_t rstart = time(nullptr); // reading time
-    
-    if(/*(!args.do_hilbert) && */(args.cvars_in.size() == 0)){
+
+    if (!args.do_hilbert && args.cvars_in.size() == 0) {
         vector<real_variable_t<float>*> vars_in;
         for (string filename : args.files_in) {
             netcdf_file_t file(filename, NETCDF_READ);
@@ -339,31 +341,30 @@ int basic_interface(int argc, char** argv) {
                 vars_in.push_back(new real_variable_t<float>(varname, &file));
             }
         }
-    
+
         time_t rend = time(nullptr);
         double rtime = difftime(rend,rstart);
         cout << "nc_in: " << rtime << "s; ";
-        
+
         // Calculate the eofs with n cores using PLASMA
         real_eof_t<float> eof;
         eof.set_svd(new SVD_TYPE<float>(args.ncores_in));
         //eof.set_svd(new mkl_svd_t<float>(args.ncores_in));
         vector<real_variable_t<float>*> vars_out = eof.calculate(vars_in, args.dim_in, args.ncores_in, args.is_circular);
-        
-        
+
         time_t wstart = time(nullptr); // writing time
 
         size_t i = 0;
         for (string filename : args.files_out) {
             netcdf_file_t file(filename, NETCDF_OVERWRITE);
-            
+
             for (string varname : args.vars_out) {
                 vars_out[i]->write(varname, &file);
-                
+
                 // Clean up
                 delete vars_in[i];
                 delete vars_out[i];
-                
+
                 i++;
             }
         }
@@ -373,28 +374,54 @@ int basic_interface(int argc, char** argv) {
         cout << "nc_out: " << wtime << "s; ";
 
     }else{
-        vector<real_variable_t<float>*> rvars_in;
-        vector<real_variable_t<float>*> cvars_in;
-        for (string filename : args.files_in) {
-            netcdf_file_t file(filename, NETCDF_READ);
-            for (string varname : args.vars_in) {
-                rvars_in.push_back(new real_variable_t<float>(varname, &file));
+
+        vector<complex_variable_t<float>*> vars_in;
+        if (args.do_hilbert) {
+
+            vector<real_variable_t<float>*> rvars_in_raw;
+            vector<real_variable_t<float>*> cvars_in_raw;
+            vector<complex_variable_t<float>*> vars_in_raw;
+            for (string filename : args.files_in) {
+                netcdf_file_t file(filename, NETCDF_READ);
+
+                for (string varname : args.vars_in) {
+                    rvars_in_raw.push_back(new real_variable_t<float>(varname, &file));
+                }
+
+                if (args.cvars_in.size() != 0) {
+                    for (string cvarname : args.cvars_in) {
+                        cvars_in_raw.push_back(new real_variable_t<float>(cvarname, &file));
+                    }
+                    for (int v = 0; v < args.vars_in.size(); v++) {
+                        vars_in_raw.push_back(make_complex_variable(rvars_in_raw.at(v), cvars_in_raw.at(v)));
+                    }
+                }
             }
-//            if(args.do_hilbert){
-//                for (string varname : args.vars_in) {
-//                    cvars_in.push_back(hilbert_transform(new real_variable_t<float>(varname, &file)));
-//                }
-//            }else{
+
+            if (args.cvars_in.size() == 0) {
+                real_spectrum_t<float> spec;
+                spec.set_dft(new fftw_fft_t<float>(args.ncores_in));
+                vars_in = spec.analytic(rvars_in_raw, args.dim_in, args.ncores_in);
+            }else{
+                complex_spectrum_t<float> spec;
+                spec.set_dft(new fftw_fft_t<float>(args.ncores_in));
+                vars_in = spec.analytic(vars_in_raw, args.dim_in, args.ncores_in);
+            }
+        }else{
+            vector<real_variable_t<float>*> rvars_in;
+            vector<real_variable_t<float>*> cvars_in;
+            for (string filename : args.files_in) {
+                netcdf_file_t file(filename, NETCDF_READ);
+                for (string varname : args.vars_in) {
+                    rvars_in.push_back(new real_variable_t<float>(varname, &file));
+                }
                 for (string cvarname : args.cvars_in) {
                     cvars_in.push_back(new real_variable_t<float>(cvarname, &file));
                 }
-//            }
-        }
-
-        vector<complex_variable_t<float>*> vars_in;
-
-        for (int v = 0; v < args.vars_in.size(); v++) {
-            vars_in.push_back(make_complex_variable(rvars_in[v], cvars_in[v]));
+                for (int v = 0; v < args.vars_in.size(); v++) {
+                    vars_in.push_back(make_complex_variable(rvars_in.at(v), cvars_in.at(v)));
+                }
+            }
         }
 
         /** Load frequency values if data is spectral */
@@ -412,27 +439,32 @@ int basic_interface(int argc, char** argv) {
         time_t rend = time(nullptr);
         double rtime = difftime(rend,rstart);
         cout << "nc_in: " << rtime << "s; ";
-        
+
         // Calculate the eofs with n cores using PLASMA
         complex_eof_t<float> eof;
         eof.set_svd(new SVD_TYPE<float>(args.ncores_in));
         //eof.set_svd(new mkl_svd_t<float>(args.ncores_in));
         vector<complex_variable_t<float>*> vars_out = eof.calculate(vars_in, args.dim_in, args.ncores_in, args.is_circular, args.is_spectral, omegas_len, omegas);
-        
-        
+
+
         time_t wstart = time(nullptr); // writing time
 
         size_t i = 0;
         for (string filename : args.files_out) {
             netcdf_file_t file(filename, NETCDF_OVERWRITE);
-            
+
             for (int i = 0; i < args.vars_out.size(); i++) {
-                vars_out[i]->write_complex(args.vars_out[i], args.cvars_out[i], &file);
-                
+
+                if (args.do_hilbert) {
+                    vars_out[i]->write_complex(args.vars_out[i] + "_re", args.vars_out[i] + "_im", &file);
+                } else {
+                    vars_out[i]->write_complex(args.vars_out[i], args.cvars_out[i], &file);
+                }
+
                 // Clean up
                 delete vars_in[i];
                 delete vars_out[i];
-                
+
                 i++;
             }
         }
@@ -445,7 +477,7 @@ int basic_interface(int argc, char** argv) {
     time_t end = time(nullptr);
     double time = difftime(end,start);
     cout << "main: " << time << "s" << endl;
-    
+
     return 0;
 }
 

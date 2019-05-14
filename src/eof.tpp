@@ -78,10 +78,10 @@ void eof_t<S, T>::match_dimensions(
     const dimension_t<T>* dim1,
     F cmp
 ) {
-    if (this->interp != nullptr) {
+    //if (this->interp != nullptr) {
         // TODO interpolate!
         
-    } else {
+    //} else {
         if (dim0->get_size() != dim1->get_size()) {
             throw eof_error_t("Input dimension lengths do not match");
         }
@@ -94,7 +94,7 @@ void eof_t<S, T>::match_dimensions(
                 throw eof_error_t("Input dimension values do not match");
             }
         }
-    }
+    //}
 }
 
 template<typename S, typename T>
@@ -352,7 +352,7 @@ void eof_t<S, T>::make_covariance_matrix(
     // TODO interpolate here? The data is organized into neat matrices so this
     // is probably the best place to interpolate
     
-    // This assumes that all matrices have the name number of rows. If we
+    // This assumes that all matrices have the same number of rows. If we
     // need to, we've already interpolated
     
     // kernel calls
@@ -423,7 +423,7 @@ std::vector<variable_t<S, T>*> eof_t<S, T>::get_eofs(
 template<typename S, typename T>
 eof_t<S, T>::eof_t() {
     this->svd = new basic_svd_t<T>();
-    this->interp = nullptr;
+    //this->interp = nullptr;
 }
 
 /**
@@ -432,9 +432,11 @@ eof_t<S, T>::eof_t() {
 template<typename S, typename T>
 eof_t<S, T>::~eof_t() {
     delete this->svd;
+    /*
     if (this->interp != nullptr) {
         delete this->interp;
     }
+    */
 }
 
 /**
@@ -449,6 +451,7 @@ void eof_t<S, T>::set_svd(svd_t<T>* svd) {
 /**
  * TODO
  */
+/*
 template<typename S, typename T>
 void eof_t<S, T>::set_interp(interp_t<S>* interp) {
     if (this->interp != nullptr) {
@@ -457,16 +460,19 @@ void eof_t<S, T>::set_interp(interp_t<S>* interp) {
     
     this->interp = interp;
 }
+*/
 
 /**
  * TODO
  */
+/*
 template<typename S, typename T>
 void eof_t<S, T>::no_interp() {
     if (this->interp != nullptr) {
         delete this->interp;
     }
 }
+*/
 
 /**
  * TODO

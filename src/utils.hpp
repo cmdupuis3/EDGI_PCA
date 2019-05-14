@@ -70,7 +70,7 @@ T circ_cov(const T* v1, const T* v2, size_t length) {
     return cov;
 }
 
-
+// Untested and probably wrong somehow
 template<typename T>
 T circ_cov(const std::complex<T>* v1, const std::complex<T>* v2, size_t length) {
 
