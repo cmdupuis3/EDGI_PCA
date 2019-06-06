@@ -1,7 +1,7 @@
 /***********************************************************************
  *                   GNU Lesser General Public License
  *
- * This file is part of the EDGI prototype package, developed by the 
+ * This file is part of the EDGI prototype package, developed by the
  * GFDL Flexible Modeling System (FMS) group.
  *
  * EDGI is free software: you can redistribute it and/or modify it under
@@ -26,7 +26,7 @@
 
 
 
-    
+
 //==============================================================================
 // Private Methods
 //==============================================================================
@@ -53,25 +53,25 @@ void dimension_t<T>::load_from_netcdf(const std::string name, const netcdf_file_
     if (!file->has_dim(name)) {
         throw eof_error_t("Dimension \"" + name + "\" does not exist");
     }
-    
+
     // Check that this dimension has a variable with the same name
     if (!file->has_var(name)) {
         throw eof_error_t("Dimension \"" + name + "\" has no variable with the same name");
     }
-    
+
     netcdf_dim_t dim_id = file->get_dim(name);
     netcdf_var_t var_id = file->get_var(name);
-    
-    // Check that this dimension's coorresponding variable has only a single dimension
+
+    // Check that this dimension's corresponding variable has only a single dimension
     if (file->get_var_n_dims(var_id) != 1) {
         throw eof_error_t("Dimension \"" + name + "\" has a coorresponding variable with multiple dimensions");
     }
-    
+
     // Check that the single dimension of this dimension's coorresponding variable is the same as this dimension
     if (file->get_var_dim(var_id, 0) != dim_id) {
         throw eof_error_t("Dimension \"" + name + "\" has a coorresponding variable with a different underlying dimension");
     }
-    
+
     T* values = file->get_var_vals<T>(var_id);
     this->set_name(name);
     this->set_values(file->get_dim_len(dim_id), values);
@@ -81,7 +81,7 @@ void dimension_t<T>::load_from_netcdf(const std::string name, const netcdf_file_
 
 
 
-    
+
 //======================================
 // Setting Fields
 //======================================
@@ -136,7 +136,7 @@ dimension_t<T>::~dimension_t() {
 
 
 
-    
+
 //======================================
 // Getting and Setting Fields
 //======================================
@@ -169,11 +169,11 @@ bool dimension_t<T>::operator==(const dimension_t<T>& that) const {
     if (this->get_name() != that.get_name()) {
         return false;
     }
-    
+
     if (this->get_size() != that.get_size()) {
         return false;
     }
-    
+
     size_t num_vals = this->get_size();
     const T* this_vals = this->get_values();
     const T* that_vals = that.get_values();
@@ -182,7 +182,7 @@ bool dimension_t<T>::operator==(const dimension_t<T>& that) const {
             return false;
         }
     }
-    
+
     return true;
 }
 

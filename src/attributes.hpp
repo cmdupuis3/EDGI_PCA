@@ -18,8 +18,8 @@
  * License along with EDGI.  If not, see <http://www.gnu.org/licenses/>.
  **********************************************************************/
 
-#ifndef DIMENSION_HPP
-#define DIMENSION_HPP
+#ifndef ATTRIBUTE_HPP
+#define ATTRIBUTE_HPP
 
 /** Use size_t */
 #include <cstddef>
@@ -27,21 +27,16 @@
 /** Use std::string */
 #include <string>
 
-/** Use netcdf_file_t */
 #include "netcdf_file.hpp"
+#include "variable.hpp"
 
 
-
-
-//==============================================================================
-// Declaration
-//==============================================================================
-
-/**
- * Represents a netcdf dimension/variable pair
+/* NetCDF attributes, mostly for copying from input to output. Not templated
+ * because using nc_types are more flexible in dealing with attributes of
+ * unknown type.
  */
-template<typename T>
-class dimension_t {
+
+class attribute_t {
 private:
     //==========================================================================
     // Private Fields
@@ -49,9 +44,11 @@ private:
 
     std::string name;
 
-    size_t size = 0;
+    nc_type type = -100000; // something NetCDF won't treat as valid
 
-    T* values = nullptr;
+    size_t len = 0;
+
+    void* value = nullptr;
 
 
 
@@ -63,9 +60,12 @@ private:
     // Initializing
     //==================================
 
-    void load_from_dim(const dimension_t<T>& dim);
+    void load_from_att(const attribute_t& att);
 
-    void load_from_values(std::string name, size_t size, const T* values);
+    void load_from_value(std::string name, nc_type type, size_t len, const void* value);
+
+    template<typename S, typename T>
+    void load_from_netcdf(std::string name, const variable_t<S,T>* var);
 
     void load_from_netcdf(std::string name, const netcdf_file_t* file);
 
@@ -80,15 +80,18 @@ public:
     // Constructing and Destructing
     //==================================
 
-    dimension_t();
+    attribute_t();
 
-    dimension_t(const dimension_t<T>& dim);
+    attribute_t(const attribute_t& dim);
 
-    dimension_t(std::string name, size_t size, const T* values);
+    attribute_t(std::string name, nc_type type, size_t len, const void* value);
 
-    dimension_t(std::string name, const netcdf_file_t* file);
+    template<typename S, typename T>
+    attribute_t(std::string name, const variable_t<S,T>* var);
 
-    ~dimension_t();
+    attribute_t(std::string name, const netcdf_file_t* file);
+
+    ~attribute_t();
 
 
 
@@ -98,13 +101,19 @@ public:
 
     const std::string get_name() const;
 
-    size_t get_size() const;
+    nc_type get_type() const;
 
-    const T* get_values() const;
+    size_t get_len() const;
+
+    const void* get_value() const;
 
     void set_name(std::string);
 
-    void set_values(size_t size, const T* values);
+    void set_type(nc_type type);
+
+    void set_len(size_t len);
+
+    void set_value(const void* value);
 
 
 
@@ -112,9 +121,9 @@ public:
     // Operators
     //==================================
 
-    bool operator==(const dimension_t<T>& that) const;
+    bool operator==(const attribute_t& that) const;
 
-    bool operator!=(const dimension_t<T>& that) const;
+    bool operator!=(const attribute_t& that) const;
 
 };
 
@@ -122,11 +131,16 @@ public:
 
 
 
-//==============================================================================
-// Implementation
-//==============================================================================
 
-#include "dimension.tpp"
+
+
+
+
+
+
+
+
+
+
 
 #endif
-

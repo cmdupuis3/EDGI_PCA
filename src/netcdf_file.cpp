@@ -1,7 +1,7 @@
 /***********************************************************************
  *                   GNU Lesser General Public License
  *
- * This file is part of the EDGI prototype package, developed by the 
+ * This file is part of the EDGI prototype package, developed by the
  * GFDL Flexible Modeling System (FMS) group.
  *
  * EDGI is free software: you can redistribute it and/or modify it under
@@ -26,6 +26,8 @@ extern "C" {
 
 #include "error.hpp"
 #include "debug.hpp"
+
+#include "attributes.hpp"
 
 // <string> included in header
 using std::string;
@@ -54,7 +56,7 @@ using std::string;
 //==============================================================================
 
 namespace {
-    
+
     size_t product(int len, const size_t arr[]) {
         size_t prod = 1;
         for (int i = 0; i < len; i++) {
@@ -62,7 +64,7 @@ namespace {
         }
         return prod;
     }
-    
+
 }
 
 
@@ -75,38 +77,38 @@ namespace {
 
 void netcdf_file_t::init(const string filename, netcdf_mode_t mode) {
     const char* cstr = filename.c_str();
-    
+
     if (mode == NETCDF_READ) {
         NETCDF_ERROR_CHECK_MSG(
             "Failed to open file \"" + filename + "\". ",
             nc_open(cstr, NC_NOWRITE, &this->file_id)
         );
-        
+
     } else if (mode == NETCDF_WRITE) {
         try {
             NETCDF_ERROR_CHECK(
                 nc_create(cstr, NC_NETCDF4 | NC_CLASSIC_MODEL | NC_NOCLOBBER, &this->file_id)
             );
             this->end_def();
-            
+
         } catch (eof_error_t) {
             NETCDF_ERROR_CHECK_MSG(
                 "Failed to open file \"" + filename + "\". ",
                 nc_open(cstr, NC_WRITE, &this->file_id)
             );
         }
-        
+
     } else if (mode == NETCDF_OVERWRITE) {
         NETCDF_ERROR_CHECK_MSG(
             "Failed to open file \"" + filename + "\". ",
             nc_create(cstr, NC_NETCDF4 | NC_CLASSIC_MODEL | NC_CLOBBER, &this->file_id)
         );
         this->end_def();
-        
+
     } else {
         throw eof_error_t("Package error: this statement should be unreachable");
     }
-    
+
     this->close_file = true;
     this->closed = false;
 }
@@ -259,6 +261,17 @@ bool netcdf_file_t::has_attr(netcdf_var_t var, const string name) const {
         NETCDF_ERROR_CHECK(status);
         return false;
     }
+}
+
+
+
+
+netcdf_att_t netcdf_file_t::get_attr(netcdf_var_t var, const string name) const {
+    netcdf_att_t val;
+    NETCDF_ERROR_CHECK(
+        nc_inq_attid(this->get_file_id(), (int) var, name.c_str(), &val)
+    );
+    return val;
 }
 
 template<>
@@ -452,7 +465,7 @@ size_t netcdf_file_t::get_var_len(netcdf_var_t var) const {
     size_t n_dims = this->get_var_n_dims(var);
     int dim_ids[n_dims];
     size_t dim_lens[n_dims];
-    
+
     NETCDF_ERROR_CHECK(
         nc_inq_vardimid(this->get_file_id(), (int) var, dim_ids)
     );
