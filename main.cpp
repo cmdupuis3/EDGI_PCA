@@ -1,7 +1,7 @@
 /***********************************************************************
  *                   GNU Lesser General Public License
  *
- * This file is part of the EDGI prototype package, developed by the 
+ * This file is part of the EDGI prototype package, developed by the
  * GFDL Flexible Modeling System (FMS) group.
  *
  * EDGI is free software: you can redistribute it and/or modify it under
@@ -161,7 +161,7 @@ struct arg_data_t {
 
 bool parse_args(vector<string> argv, arg_data_t* data) {
     data->dim_in = "";
-    data->do_hilbert = true;
+    data->do_hilbert = false;
     data->is_spectral = false;
     data->is_circular = false;
 
@@ -170,9 +170,6 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
         ARG_DIM,
         ARG_VAR,
         ARG_CVAR,
-        ARG_IS_CIRCULAR,
-        ARG_SPECTRAL,
-        ARG_DO_HILBERT,
         ARG_FILE,
         ARG_NCORES
     } state = ARG_NONE;
@@ -186,11 +183,11 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
             } else if (arg == "-c") {
                 state = ARG_CVAR;
             } else if (arg == "-C") {
-                state = ARG_IS_CIRCULAR;
+                data->is_circular = true;
             } else if (arg == "-S") {
-                state = ARG_SPECTRAL;
+                data->is_spectral = true;
             } else if (arg == "-H") {
-                state = ARG_DO_HILBERT;
+                data->do_hilbert = true;
             } else if (arg == "-f") {
                 state = ARG_FILE;
             } else if (arg == "-n") {
@@ -206,7 +203,7 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
 
 
 
-         if (state == ARG_DIM) {
+        if (state == ARG_DIM) {
             data->dim_in = arg;
 
         } else if (state == ARG_VAR) {
@@ -230,16 +227,6 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
                 data->cvars_in.push_back(words[0]);
                 data->cvars_out.push_back(words[size - 1]);
             }
-
-
-        } else if (state == ARG_IS_CIRCULAR) {
-            data->is_circular = true;
-
-        } else if (state == ARG_SPECTRAL) {
-            data->is_spectral = true;
-
-        } else if (state == ARG_DO_HILBERT) {
-            data->do_hilbert = true;
 
         } else if (state == ARG_FILE) {
             vector<string> words = split(arg, ':');
@@ -273,10 +260,25 @@ bool parse_args(vector<string> argv, arg_data_t* data) {
         return false;
     }
 
+    // -c requires real data
+    if(data->is_circular &&
+       data->cvars_in.size() != 0){
+        cerr << "[ERROR] Circular covariance kernel can only be used with real-valued data currently." << endl;
+        return false;
+    }
+
+    // -H requires real data
+    if(data->do_hilbert &&
+       data->cvars_in.size() != 0){
+        cerr << "[ERROR] Analytic signals can only be generated for real-valued data currently." << endl;
+        return false;
+    }
+
     // -S requires complex data
     if(data->is_spectral &&
        data->cvars_in.size() == 0){
         cerr << "[ERROR] Spectral data must have real and imaginary components." << endl;
+        return false;
     }
 
     if (data->dim_in == "") {
