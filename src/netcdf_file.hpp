@@ -209,8 +209,22 @@ public:
     /**
      * Sets the value of the named attribute associated with the given variable
      */
-    void set_attr(netcdf_var_t var, const std::string name, const netcdf_att_t val);
+    void set_attr(netcdf_var_t var, const string name, nc_type type, size_t length, void* val);
 
+    /**
+     * Returns the attribute type as an nc_type
+     */
+    nc_type get_attr_type(netcdf_var_t var, const string name) const;
+
+    /**
+     * Returns the attribute length (i.e., number of elements)
+     */
+    size_t get_attr_len(netcdf_var_t var, const string name) const;
+
+    /**
+     * Returns the attribute value as a void* buffer
+     */
+    void* get_attr_val(netcdf_var_t var, const string name) const;
 
     /**
      * Returns whether the given attribute already exists in this NetCDF file
@@ -225,10 +239,22 @@ public:
     /**
      * Sets the value of the named attribute associated with the given variable
      */
-    void set_attr(const std::string name, const netcdf_att_t val);
+    void set_attr(const string name, nc_type type, size_t length, void* val);
 
+    /**
+     * Returns the attribute type as an nc_type
+     */
+    nc_type get_attr_type(const string name) const;
 
+    /**
+     * Returns the attribute length (i.e., number of elements)
+     */
+    size_t get_attr_len(const string name) const;
 
+    /**
+     * Returns the attribute value as a void* buffer
+     */
+    void* get_attr_val(const string name) const;
 
 
     //==========================================================================

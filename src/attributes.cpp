@@ -49,34 +49,32 @@ void attribute_t::load_from_value(std::string name, nc_type type, size_t len, co
 }
 
 template<typename S, typename T>
-void attribute_t::load_from_netcdf(std::string name, const variable_t<S,T>* var) {
+void attribute_t::load_from_netcdf(const std::string name, const netcdf_file_t* file, const std::string var_name) {
     // Check that this attribute exists
     if (!file->has_attr(name)) {
-        throw eof_error_t("Attribute \"" + name + "\" does not exist");
+        throw eof_error_t("Attribute \"" + name + "\" does not exist in variable \"" + var_name + "\"");
     }
 
-    netcdf_att_t att_id = file->get_attr(name);
+    netcdf_var_t var_id = file->get_var(var_name);
 
     this->set_name(name);
-    this->set_type(file->get_attr_type(att_id));
-    this->set_len(file->get_attr_len(att_id));
-    this->set_value(file->get_attr_val(att_id));
+    this->set_type(file->get_attr_type(var_id, name));
+    this->set_len(file->get_attr_len(var_id, name));
+    this->set_value(file->get_attr_val(var_id, name));
 
 }
 
 
-void attribute_t::load_from_netcdf(std::string name, const netcdf_file_t* file) {
+void attribute_t::load_from_netcdf(const std::string name, const netcdf_file_t* file) {
     // Check that this attribute exists
     if (!file->has_attr(name)) {
-        throw eof_error_t("Attribute \"" + name + "\" does not exist");
+        throw eof_error_t("Global attribute \"" + name + "\" does not exist");
     }
 
-    netcdf_att_t att_id = file->get_attr(name);
-
     this->set_name(name);
-    this->set_type(file->get_attr_type(att_id));
-    this->set_len(file->get_attr_len(att_id));
-    this->set_value(file->get_attr_val(att_id));
+    this->set_type(file->get_attr_type(name));
+    this->set_len(file->get_attr_len(name));
+    this->set_value(file->get_attr_val(name));
 
 }
 

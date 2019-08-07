@@ -263,82 +263,30 @@ bool netcdf_file_t::has_attr(netcdf_var_t var, const string name) const {
     }
 }
 
-
-
+bool netcdf_file_t::has_attr(const string name) const {
+    return this->has_attr( (netcdf_var_t) NC_GLOBAL, name);
+}
 
 netcdf_att_t netcdf_file_t::get_attr(netcdf_var_t var, const string name) const {
-    netcdf_att_t val;
+    int val;
     NETCDF_ERROR_CHECK(
         nc_inq_attid(this->get_file_id(), (int) var, name.c_str(), &val)
     );
-    return val;
+    return (netcdf_att_t) val;
 }
 
-template<>
-int netcdf_file_t::get_attr<int>(netcdf_var_t var, const string name) const {
-    int val;
-    NETCDF_ERROR_CHECK(
-        nc_get_att_int(this->get_file_id(), (int) var, name.c_str(), &val)
-    );
-    return val;
+netcdf_att_t netcdf_file_t::get_attr(const string name) const {
+    return this->get_attr( (netcdf_var_t) NC_GLOBAL, name);
 }
 
-template<>
-long netcdf_file_t::get_attr<long>(netcdf_var_t var, const string name) const {
-    long val;
+void netcdf_file_t::set_attr(netcdf_var_t var, const string name, nc_type type, size_t length, void* val) {
     NETCDF_ERROR_CHECK(
-        nc_get_att_long(this->get_file_id(), (int) var, name.c_str(), &val)
-    );
-    return val;
-}
-
-template<>
-float netcdf_file_t::get_attr<float>(netcdf_var_t var, const string name) const {
-    float val;
-    NETCDF_ERROR_CHECK(
-        nc_get_att_float(this->get_file_id(), (int) var, name.c_str(), &val)
-    );
-    return val;
-}
-
-template<>
-double netcdf_file_t::get_attr<double>(netcdf_var_t var, const string name) const {
-    double val;
-    NETCDF_ERROR_CHECK(
-        nc_get_att_double(this->get_file_id(), (int) var, name.c_str(), &val)
-    );
-    return val;
-}
-
-template<>
-void netcdf_file_t::set_attr<int>(netcdf_var_t var, const string name, int val) {
-    NETCDF_ERROR_CHECK(
-        nc_put_att_int(this->get_file_id(), (int) var, name.c_str(), NC_INT, 1, &val)
+        nc_put_att(this->get_file_id(), (int) var, name.c_str(), type, length, val)
     );
 }
-
-template<>
-void netcdf_file_t::set_attr<long>(netcdf_var_t var, const string name, long val) {
-    NETCDF_ERROR_CHECK(
-        nc_put_att_long(this->get_file_id(), (int) var, name.c_str(), NC_LONG, 1, &val)
-    );
+void netcdf_file_t::set_attr(const string name, nc_type type, size_t length, void* val) {
+    this->set_attr( (netcdf_var_t) NC_GLOBAL, name, type, length, val);
 }
-
-template<>
-void netcdf_file_t::set_attr<float>(netcdf_var_t var, const string name, float val) {
-    NETCDF_ERROR_CHECK(
-        nc_put_att_float(this->get_file_id(), (int) var, name.c_str(), NC_FLOAT, 1, &val)
-    );
-}
-
-template<>
-void netcdf_file_t::set_attr<double>(netcdf_var_t var, const string name, double val) {
-    NETCDF_ERROR_CHECK(
-        nc_put_att_double(this->get_file_id(), (int) var, name.c_str(), NC_DOUBLE, 1, &val)
-    );
-}
-
-
 
 
 

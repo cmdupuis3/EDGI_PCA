@@ -65,7 +65,7 @@ private:
     void load_from_value(std::string name, nc_type type, size_t len, const void* value);
 
     template<typename S, typename T>
-    void load_from_netcdf(std::string name, const variable_t<S,T>* var);
+    void load_from_netcdf(std::string name, const netcdf_file_t* file, const std::string var_name);
 
     void load_from_netcdf(std::string name, const netcdf_file_t* file);
 
