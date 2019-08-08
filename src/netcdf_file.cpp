@@ -272,7 +272,7 @@ bool netcdf_file_t::has_attr(netcdf_var_t var, const string name) const {
 }
 
 string netcdf_file_t::get_attr(netcdf_var_t var, int index) const {
-    char* name = new char[NC_MAX_NAME];
+    char* name = new char[NC_MAX_NAME + 1];
     NETCDF_ERROR_CHECK(
         nc_inq_attname(this->get_file_id(), (int) var, index, name);
     );

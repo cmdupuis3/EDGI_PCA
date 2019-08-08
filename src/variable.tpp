@@ -118,7 +118,7 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
            att_name != "missing_value" &&
            att_name != "missing_val"){
             attrs[i] = new attribute_t(att_name, file, name);
-            cout << endl << attrs[i]->get_name() << endl;
+            cout << endl << attrs[i]->get_name() << "; " << attrs[i]->get_type() << "; " << attrs[i]->get_length() << endl;
         }else{
             num_attrs_filtered--;
         }
@@ -126,9 +126,6 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
 
     // Set the name and dimensions
     this->set_attrs(num_attrs_filtered, attrs);
-
-
-
 
     // Load the data from NetCDF
     if (this->data != nullptr) {
@@ -293,11 +290,6 @@ void variable_t<S, T>::set_dims(size_t num_dims, const dimension_t<T>** dims) {
 }
 
 
-//(((((((((((((((((((((((((((((((((((((((((((((((((((
-
-
-
-
 template<typename S, typename T>
 size_t variable_t<S, T>::get_num_attrs() const {
     return this->num_attrs;
@@ -366,26 +358,6 @@ void variable_t<S, T>::set_attrs(size_t num_attrs, const attribute_t** attrs) {
 
     this->set_attrs(num_attrs, new_attrs);
 }
-
-
-
-
-
-
-
-
-//))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-
-
-
-
-
-
-
-
-
-
 
 
 template<typename S, typename T>
@@ -505,16 +477,6 @@ void write_var(const variable_t<S, T>* var, const std::string name, netcdf_file_
         var_id = file->get_var(name);
     }
 
-    /*
-    // Write the missing value, if applicable
-    if (var->has_missing_value()) {
-        file->begin_def();
-        file->set_attr(var_id, MISSING_VALUE_NAME, var->get_missing_value());
-        file->end_def();
-    }
-    */
-
-
     // Set its values and synchronize the file
     file->set_var_vals<S>(var_id, var->get_data());
     file->sync();
@@ -594,15 +556,6 @@ void write_complex_var(const variable_t<std::complex<S>, T>* var, const std::str
         data_re[i] = data[i].real();
         data_im[i] = data[i].imag();
     }
-    /*
-    // Write the missing value, if applicable
-    if (var->has_missing_value()) {
-        file->begin_def();
-        file->set_attr(var_re_id, MISSING_VALUE_NAME + "_re", var->get_missing_value().real());
-        file->set_attr(var_im_id, MISSING_VALUE_NAME + "_im", var->get_missing_value().imag());
-        file->end_def();
-    }
-    */
 
     // Set its values and synchronize the file
     file->set_var_vals<S>(var_re_id, data_re);
@@ -661,42 +614,6 @@ matrix_t<S>* variable_t<S, T>::to_matrix(std::string dim_name) const {
 
     return mat;
 }
-
-/*
-template<typename S, typename T>
-const S get_var_absmax(const variable_t<S, T>* var) {
-
-    size_t product = 1;
-    for (size_t i = 0; i < var->get_num_dims(); i++) {
-        product *= var->get_dims()[var->get_num_dims() - 1 - i]->get_size();
-    }
-
-    S absmax = 0;
-    for (size_t i = 0; i < product; i++){
-        if(absmax < abs(var->get_data()[i])) absmax = abs(var->get_data()[i]);
-    }
-
-    return absmax;
-}
-
-template<typename S, typename T>
-const std::complex<S> get_var_absmax_complex(const variable_t<std::complex<S>, T>* var) {
-
-    size_t product = 1;
-    for (size_t i = 0; i < var->get_num_dims(); i++) {
-        product *= var->get_dims()[var->get_num_dims() - 1 - i]->get_size();
-    }
-
-    S absmax_re = 0;
-    S absmax_im = 0;
-    for (size_t i = 0; i < product; i++){
-        if(absmax_re < abs(var->get_data()[i].real())) absmax_re = abs(var->get_data()[i].real());
-        if(absmax_im < abs(var->get_data()[i].imag())) absmax_im = abs(var->get_data()[i].imag());
-    }
-
-    return std::complex<S>(absmax_re, absmax_im);
-}
-*/
 
 template<typename S, typename T>
 const S variable_t<S, T>::get_absmax() const {
