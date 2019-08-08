@@ -23,7 +23,7 @@
 #include "error.hpp"
 #include "debug.hpp"
 
-#include "attributes.hpp"
+#include "attribute.hpp"
 
 
 //==============================================================================
@@ -34,7 +34,7 @@
 // Initializing
 //======================================
 
-void attribute_t::load_from_att(const attribute_t& att) {
+void attribute_t::load_from_attr(const attribute_t& att) {
     this->set_name(att.name);
     this->set_type(att.type);
     this->set_length(att.length);
@@ -48,14 +48,14 @@ void attribute_t::load_from_value(std::string name, nc_type type, size_t length,
     this->set_value(value);
 }
 
-template<typename S, typename T>
 void attribute_t::load_from_netcdf(const std::string name, const netcdf_file_t* file, const std::string var_name) {
-    // Check that this attribute exists
-    if (!file->has_attr(name)) {
-        throw eof_error_t("Attribute \"" + name + "\" does not exist in variable \"" + var_name + "\"");
-    }
 
     netcdf_var_t var_id = file->get_var(var_name);
+
+    // Check that this attribute exists
+    if (!file->has_attr(var_id, name)) {
+        throw eof_error_t("Attribute \"" + name + "\" does not exist in variable \"" + var_name + "\"");
+    }
 
     this->set_name(name);
     this->set_type(file->get_attr_type(var_id, name));
@@ -78,15 +78,47 @@ void attribute_t::load_from_netcdf(const std::string name, const netcdf_file_t* 
 
 }
 
+//==============================================================================
+// Public Methods
+//==============================================================================
+
+//======================================
+// Constructing and Destructing
+//======================================
+
+attribute_t::attribute_t(const attribute_t& attr) {
+    this->load_from_attr(attr);
+}
+
+attribute_t::attribute_t(std::string name, nc_type type, size_t length, void* value) {
+    this->load_from_value(name, type, length, value);
+}
+
+attribute_t::attribute_t(std::string name, const netcdf_file_t* file, const std::string var_name){
+    this->load_from_netcdf(name, file, var_name);
+}
+
+attribute_t::attribute_t(std::string name, const netcdf_file_t* file){
+    this->load_from_netcdf(name, file);
+}
+
+attribute_t::~attribute_t(){
+    this->value = nullptr;
+}
+
+//======================================
+// Getting and Setting Fields
+//======================================
+
 const std::string attribute_t::get_name() const {
     return this->name;
 }
 
-const nc_type attribute_t::get_type() const {
+nc_type attribute_t::get_type() const {
     return this->type;
 }
 
-const size_t attribute_t::get_length() const {
+size_t attribute_t::get_length() const {
     return this->length;
 }
 

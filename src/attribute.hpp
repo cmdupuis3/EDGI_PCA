@@ -60,11 +60,10 @@ private:
     // Initializing
     //==================================
 
-    void load_from_att(const attribute_t& att);
+    void load_from_attr(const attribute_t& att);
 
     void load_from_value(std::string name, nc_type type, size_t length, void* value);
 
-    template<typename S, typename T>
     void load_from_netcdf(std::string name, const netcdf_file_t* file, const std::string var_name);
 
     void load_from_netcdf(std::string name, const netcdf_file_t* file);
@@ -86,8 +85,7 @@ public:
 
     attribute_t(std::string name, nc_type type, size_t length, void* value);
 
-    template<typename S, typename T>
-    attribute_t(std::string name, const variable_t<S,T>* var);
+    attribute_t(std::string name, const netcdf_file_t* file, const std::string var_name);
 
     attribute_t(std::string name, const netcdf_file_t* file);
 
@@ -101,9 +99,9 @@ public:
 
     const std::string get_name() const;
 
-    const nc_type get_type() const;
+    nc_type get_type() const;
 
-    const size_t get_length() const;
+    size_t get_length() const;
 
     const void* get_value() const;
 

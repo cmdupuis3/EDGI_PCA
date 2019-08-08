@@ -195,16 +195,20 @@ public:
 
 
 
+    /**
+     * Returns the number of attributes present in a variable, including _FillValue and missing_value
+     */
+    size_t get_n_attrs(netcdf_var_t var) const;
 
     /**
-     * Returns whether the given attribute already exists in this NetCDF variable
+     * Returns whether the given attribute already exists in this NetCDF file
      */
     bool has_attr(netcdf_var_t var, const std::string name) const;
 
     /**
-     * Returns the named attribute associated with the given variable
+     * Returns the variable's [index]'th attribute name
      */
-    netcdf_att_t get_attr(netcdf_var_t var, const std::string name) const;
+    string get_attr(netcdf_var_t var, int index) const;
 
     /**
      * Sets the value of the named attribute associated with the given variable
@@ -227,14 +231,19 @@ public:
     void* get_attr_val(netcdf_var_t var, const string name) const;
 
     /**
+     * Returns the number of global attributes present, including _FillValue and missing_value
+     */
+    size_t get_n_attrs() const;
+
+    /**
      * Returns whether the given attribute already exists in this NetCDF file
      */
     bool has_attr(const std::string name) const;
 
     /**
-     * Returns the named attribute associated with the given variable
+     * Returns the variable's [index]'th attribute name
      */
-    netcdf_att_t get_attr(const std::string name) const;
+    string get_attr(int index) const;
 
     /**
      * Sets the value of the named attribute associated with the given variable

@@ -1,7 +1,7 @@
 /***********************************************************************
  *                   GNU Lesser General Public License
  *
- * This file is part of the EDGI prototype package, developed by the 
+ * This file is part of the EDGI prototype package, developed by the
  * GFDL Flexible Modeling System (FMS) group.
  *
  * EDGI is free software: you can redistribute it and/or modify it under
@@ -20,6 +20,9 @@
 
 #ifndef VARIABLE_HPP
 #define VARIABLE_HPP
+
+/** Use attribute_t */
+#include "attribute.hpp"
 
 /** Use dimension_t */
 #include "dimension.hpp"
@@ -65,6 +68,9 @@ private:
 
     /** This variable's dimensions */
     dimension_t<T>** dims = nullptr;
+
+    /** This variable's attributes, excluding _FillValue and missing_value */
+    attribute_t** atts = nullptr;
 
     /** The striding of data in each dimension */
     size_t* striding = nullptr;

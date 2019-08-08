@@ -91,7 +91,9 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
 
     netcdf_var_t var_id = file->get_var(name);
     size_t num_dims = file->get_var_n_dims(var_id);
+    size_t num_atts = file->get_n_attrs(var_id);
     dimension_t<T>** dims = new dimension_t<T>*[num_dims];
+    attribute_t**    atts = new attribute_t*[num_atts];
 
     // Load the dimensions
     for (size_t i = 0; i < num_dims; i++) {
@@ -118,6 +120,12 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
         this->set_missing_value(file->get_fill<S>(var_id));
     } else if (file->has_attr(var_id, MISSING_VALUE_NAME)) {
         this->set_missing_value(*((int*)file->get_attr_val(var_id, MISSING_VALUE_NAME)));
+    }
+
+    // Load the attributes (aside from missing value attributes)
+    for (size_t i = 0; i < num_atts; i++) {
+        char* att_name = new char[NC_MAX_NAME];
+        file->get_n_attrs(var_id);
     }
 
     // Set the name and dimensions

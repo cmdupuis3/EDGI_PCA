@@ -27,8 +27,6 @@ extern "C" {
 #include "error.hpp"
 #include "debug.hpp"
 
-#include "attributes.hpp"
-
 // <string> included in header
 using std::string;
 
@@ -250,6 +248,16 @@ void netcdf_file_t::set_fill<double>(netcdf_var_t var, const double fill_value, 
     );
 }
 
+
+
+size_t netcdf_file_t::get_n_attrs(netcdf_var_t var) const {
+    int n;
+    NETCDF_ERROR_CHECK(
+        nc_inq_natts((int) var, &n);
+    );
+    return n;
+}
+
 bool netcdf_file_t::has_attr(netcdf_var_t var, const string name) const {
     int attr;
     int status = nc_inq_attid(this->get_file_id(), (int) var, name.c_str(), &attr);
@@ -263,29 +271,18 @@ bool netcdf_file_t::has_attr(netcdf_var_t var, const string name) const {
     }
 }
 
-bool netcdf_file_t::has_attr(const string name) const {
-    return this->has_attr( (netcdf_var_t) NC_GLOBAL, name);
-}
-
-netcdf_att_t netcdf_file_t::get_attr(netcdf_var_t var, const string name) const {
-    int val;
+string netcdf_file_t::get_attr(netcdf_var_t var, int index) const {
+    char* name = new char[NC_MAX_NAME];
     NETCDF_ERROR_CHECK(
-        nc_inq_attid(this->get_file_id(), (int) var, name.c_str(), &val)
+        nc_inq_attname(this->get_file_id(), (int) var, index, name);
     );
-    return (netcdf_att_t) val;
-}
-
-netcdf_att_t netcdf_file_t::get_attr(const string name) const {
-    return this->get_attr( (netcdf_var_t) NC_GLOBAL, name);
+    return string(name);
 }
 
 void netcdf_file_t::set_attr(netcdf_var_t var, const string name, nc_type type, size_t length, void* val) {
     NETCDF_ERROR_CHECK(
         nc_put_att(this->get_file_id(), (int) var, name.c_str(), type, length, val)
     );
-}
-void netcdf_file_t::set_attr(const string name, nc_type type, size_t length, void* val) {
-    this->set_attr( (netcdf_var_t) NC_GLOBAL, name, type, length, val);
 }
 
 nc_type netcdf_file_t::get_attr_type(netcdf_var_t var, const string name) const {
@@ -296,20 +293,12 @@ nc_type netcdf_file_t::get_attr_type(netcdf_var_t var, const string name) const 
     return type;
 }
 
-nc_type netcdf_file_t::get_attr_type(const string name) const {
-    return this->get_attr_type( (netcdf_var_t) NC_GLOBAL, name);
-}
-
 size_t netcdf_file_t::get_attr_len(netcdf_var_t var, const string name) const {
     size_t length;
     NETCDF_ERROR_CHECK(
         nc_inq_attlen(this->get_file_id(), (int) var, name.c_str(), &length)
     );
     return length;
-}
-
-size_t netcdf_file_t::get_attr_len(const string name) const {
-    return this->get_attr_len( (netcdf_var_t) NC_GLOBAL, name);
 }
 
 void* netcdf_file_t::get_attr_val(netcdf_var_t var, const string name) const {
@@ -327,6 +316,30 @@ void* netcdf_file_t::get_attr_val(netcdf_var_t var, const string name) const {
         nc_get_att(this->get_file_id(), (int) var, name.c_str(), buffer)
     );
     return buffer;
+}
+
+size_t netcdf_file_t::get_n_attrs() const {
+    return this->get_n_attrs( (netcdf_var_t) NC_GLOBAL);
+}
+
+bool netcdf_file_t::has_attr(const string name) const {
+    return this->has_attr( (netcdf_var_t) NC_GLOBAL, name);
+}
+
+string netcdf_file_t::get_attr(int index) const {
+    return this->get_attr( (netcdf_var_t) NC_GLOBAL, index);
+}
+
+void netcdf_file_t::set_attr(const string name, nc_type type, size_t length, void* val) {
+    this->set_attr( (netcdf_var_t) NC_GLOBAL, name, type, length, val);
+}
+
+nc_type netcdf_file_t::get_attr_type(const string name) const {
+    return this->get_attr_type( (netcdf_var_t) NC_GLOBAL, name);
+}
+
+size_t netcdf_file_t::get_attr_len(const string name) const {
+    return this->get_attr_len( (netcdf_var_t) NC_GLOBAL, name);
 }
 
 void* netcdf_file_t::get_attr_val(const string name) const {
