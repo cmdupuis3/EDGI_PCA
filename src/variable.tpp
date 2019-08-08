@@ -1,7 +1,7 @@
 /***********************************************************************
  *                   GNU Lesser General Public License
  *
- * This file is part of the EDGI prototype package, developed by the 
+ * This file is part of the EDGI prototype package, developed by the
  * GFDL Flexible Modeling System (FMS) group.
  *
  * EDGI is free software: you can redistribute it and/or modify it under
@@ -28,6 +28,7 @@
 #include <complex>
 #include <iostream>
 
+#include "variable.hpp"
 
 using std::cout;
 using std::endl;
@@ -113,10 +114,10 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
     }
 
     // Try loading the missing value
-    if (file->has_attr(var_id, MISSING_VALUE_NAME)) {
-        this->set_missing_value(file->get_attr<S>(var_id, MISSING_VALUE_NAME));
-    } else if (file->has_fill(var_id)) {
+    if (file->has_fill(var_id)) {
         this->set_missing_value(file->get_fill<S>(var_id));
+    } else if (file->has_attr(var_id, MISSING_VALUE_NAME)) {
+        this->set_missing_value(*((int*)file->get_attr_val(var_id, MISSING_VALUE_NAME)));
     }
 
     // Set the name and dimensions
@@ -130,26 +131,6 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
     // TODO Change to get_vara_vals to fix strided accesses later
     this->data = file->get_var_vals<S>(var_id);
 
-    /*
-    // TODO Change all missing values to NaN
-
-    if (this->has_missing_value() && std::numeric_limits<S>::has_quiet_NaN) {
-        size_t size = 1;
-        for (size_t i = 0; i < this->get_num_dims(); i++) {
-            size *= this->get_dim(i)->get_size();
-        }
-
-        S missing_value = this->get_missing_value();
-        S nan_value = std::numeric_limits<S>::quiet_NaN();
-        for (size_t i = 0; i < size; i++) {
-            if (this->data[i] == missing_value) {
-                this->data[i] = nan_value;
-            }
-        }
-    }
-
-    // TODO should the missing value be unset now? set to NaN?
-    */
 }
 
 template<typename S, typename T>

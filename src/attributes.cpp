@@ -37,14 +37,14 @@
 void attribute_t::load_from_att(const attribute_t& att) {
     this->set_name(att.name);
     this->set_type(att.type);
-    this->set_len(att.len);
+    this->set_length(att.length);
     this->set_value(att.value);
 }
 
-void attribute_t::load_from_value(std::string name, nc_type type, size_t len, const void* value) {
+void attribute_t::load_from_value(std::string name, nc_type type, size_t length, void* value) {
     this->set_name(name);
     this->set_type(type);
-    this->set_len(len);
+    this->set_length(length);
     this->set_value(value);
 }
 
@@ -59,7 +59,7 @@ void attribute_t::load_from_netcdf(const std::string name, const netcdf_file_t* 
 
     this->set_name(name);
     this->set_type(file->get_attr_type(var_id, name));
-    this->set_len(file->get_attr_len(var_id, name));
+    this->set_length(file->get_attr_len(var_id, name));
     this->set_value(file->get_attr_val(var_id, name));
 
 }
@@ -73,9 +73,41 @@ void attribute_t::load_from_netcdf(const std::string name, const netcdf_file_t* 
 
     this->set_name(name);
     this->set_type(file->get_attr_type(name));
-    this->set_len(file->get_attr_len(name));
+    this->set_length(file->get_attr_len(name));
     this->set_value(file->get_attr_val(name));
 
+}
+
+const std::string attribute_t::get_name() const {
+    return this->name;
+}
+
+const nc_type attribute_t::get_type() const {
+    return this->type;
+}
+
+const size_t attribute_t::get_length() const {
+    return this->length;
+}
+
+const void* attribute_t::get_value() const {
+    return this->value;
+}
+
+void attribute_t::set_name(std::string name) {
+    this->name = name;
+}
+
+void attribute_t::set_type(nc_type type) {
+    this->type = type;
+}
+
+void attribute_t::set_length(size_t length) {
+    this->length = length;
+}
+
+void attribute_t::set_value(void* value) {
+    this->value = value; // shallow copy alert!
 }
 
 

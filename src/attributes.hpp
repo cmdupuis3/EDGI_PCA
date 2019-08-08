@@ -46,7 +46,7 @@ private:
 
     nc_type type = -100000; // something NetCDF won't treat as valid
 
-    size_t len = 0;
+    size_t length = 0;
 
     void* value = nullptr;
 
@@ -62,7 +62,7 @@ private:
 
     void load_from_att(const attribute_t& att);
 
-    void load_from_value(std::string name, nc_type type, size_t len, const void* value);
+    void load_from_value(std::string name, nc_type type, size_t length, void* value);
 
     template<typename S, typename T>
     void load_from_netcdf(std::string name, const netcdf_file_t* file, const std::string var_name);
@@ -84,7 +84,7 @@ public:
 
     attribute_t(const attribute_t& dim);
 
-    attribute_t(std::string name, nc_type type, size_t len, const void* value);
+    attribute_t(std::string name, nc_type type, size_t length, void* value);
 
     template<typename S, typename T>
     attribute_t(std::string name, const variable_t<S,T>* var);
@@ -101,9 +101,9 @@ public:
 
     const std::string get_name() const;
 
-    nc_type get_type() const;
+    const nc_type get_type() const;
 
-    size_t get_len() const;
+    const size_t get_length() const;
 
     const void* get_value() const;
 
@@ -111,9 +111,9 @@ public:
 
     void set_type(nc_type type);
 
-    void set_len(size_t len);
+    void set_length(size_t length);
 
-    void set_value(const void* value);
+    void set_value(void* value);
 
 
 
