@@ -253,7 +253,7 @@ void netcdf_file_t::set_fill<double>(netcdf_var_t var, const double fill_value, 
 size_t netcdf_file_t::get_n_attrs(netcdf_var_t var) const {
     int n;
     NETCDF_ERROR_CHECK(
-        nc_inq_natts((int) var, &n);
+        nc_inq_varnatts(this->get_file_id(), (int) var, &n);
     );
     return n;
 }
@@ -319,7 +319,11 @@ void* netcdf_file_t::get_attr_val(netcdf_var_t var, const string name) const {
 }
 
 size_t netcdf_file_t::get_n_attrs() const {
-    return this->get_n_attrs( (netcdf_var_t) NC_GLOBAL);
+    int n;
+    NETCDF_ERROR_CHECK(
+        nc_inq_natts(this->get_file_id(), &n);
+    );
+    return n;
 }
 
 bool netcdf_file_t::has_attr(const string name) const {
