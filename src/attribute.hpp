@@ -28,7 +28,6 @@
 #include <string>
 
 #include "netcdf_file.hpp"
-#include "variable.hpp"
 
 
 /* NetCDF attributes, mostly for copying from input to output. Not templated

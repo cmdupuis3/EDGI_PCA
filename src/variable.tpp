@@ -28,8 +28,6 @@
 #include <complex>
 #include <iostream>
 
-#include "variable.hpp"
-
 using std::cout;
 using std::endl;
 using std::complex;
@@ -91,29 +89,19 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
 
     netcdf_var_t var_id = file->get_var(name);
     size_t num_dims = file->get_var_n_dims(var_id);
-    size_t num_atts = file->get_n_attrs(var_id);
+    size_t num_attrs = file->get_n_attrs(var_id);
     dimension_t<T>** dims = new dimension_t<T>*[num_dims];
-    attribute_t**    atts = new attribute_t*[num_atts];
+    attribute_t**   attrs = new attribute_t*[num_attrs];
 
     // Load the dimensions
     for (size_t i = 0; i < num_dims; i++) {
         netcdf_dim_t dim_id = file->get_var_dim(var_id, i);
         std::string dim_name = file->get_dim_name(dim_id);
-
-        try {
-            dims[i] = new dimension_t<T>(dim_name, file);
-
-        } catch (eof_error_t err) {
-            // Cleanup memory allocations
-            for (size_t j = 0; j < num_dims; j++) {
-                delete dims[j];
-            }
-            delete[] dims;
-
-            // Rethrow the exception
-            throw;
-        }
+        dims[i] = new dimension_t<T>(dim_name, file);
     }
+
+    // Set the name and dimensions
+    this->set_dims(num_dims, dims);
 
     // Try loading the missing value
     if (file->has_fill(var_id)) {
@@ -123,13 +111,24 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
     }
 
     // Load the attributes (aside from missing value attributes)
-    for (size_t i = 0; i < num_atts; i++) {
-        char* att_name = new char[NC_MAX_NAME];
-        file->get_n_attrs(var_id);
+    size_t num_attrs_filtered = num_attrs;
+    for (size_t i = 0; i < num_attrs; i++) {
+        std::string att_name = file->get_attr(var_id, i);
+        if(att_name != "_FillValue" &&
+           att_name != "missing_value" &&
+           att_name != "missing_val"){
+            attrs[i] = new attribute_t(att_name, file, name);
+            cout << endl << attrs[i]->get_name() << endl;
+        }else{
+            num_attrs_filtered--;
+        }
     }
 
     // Set the name and dimensions
-    this->set_dims(num_dims, dims);
+    this->set_attrs(num_attrs_filtered, attrs);
+
+
+
 
     // Load the data from NetCDF
     if (this->data != nullptr) {
@@ -190,6 +189,19 @@ void variable_t<S, T>::clear_dims() {
     }
 
     this->num_dims = 0;
+}
+
+template<typename S, typename T>
+void variable_t<S, T>::clear_attrs() {
+    if (this->attrs != nullptr) {
+        for (size_t i = 0; i < this->get_num_attrs(); i++) {
+            delete this->attrs[i];
+        }
+        delete[] this->attrs;
+        this->attrs = nullptr;
+    }
+
+    this->num_attrs = 0;
 }
 
 
@@ -279,6 +291,102 @@ void variable_t<S, T>::set_dims(size_t num_dims, const dimension_t<T>** dims) {
 
     this->set_dims(num_dims, new_dims);
 }
+
+
+//(((((((((((((((((((((((((((((((((((((((((((((((((((
+
+
+
+
+template<typename S, typename T>
+size_t variable_t<S, T>::get_num_attrs() const {
+    return this->num_attrs;
+}
+
+template<typename S, typename T>
+bool variable_t<S, T>::has_attr(const std::string name) const {
+    for (size_t i = 0; i < this->get_num_attrs(); i++) {
+        if (name == this->attrs[i]->get_name()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+template<typename S, typename T>
+size_t variable_t<S, T>::find_attr(const std::string name) const {
+    for (size_t i = 0; i < this->get_num_attrs(); i++) {
+        if (name == this->attrs[i]->get_name()) {
+            return i;
+        }
+    }
+
+    throw eof_error_t("Requested attribute does not exist");
+}
+
+template<typename S, typename T>
+void variable_t<S, T>::rename_attr(size_t index, const std::string new_name) {
+    this->attrs[index]->set_name(new_name);
+}
+
+template<typename S, typename T>
+void variable_t<S, T>::rename_attr(const std::string old_name, const std::string new_name) {
+    this->attrs[this->find_attr(old_name)]->set_name(new_name);
+}
+
+template<typename S, typename T>
+const attribute_t* variable_t<S, T>::get_attr(size_t index) const {
+    return (const attribute_t*) this->attrs[index];
+}
+
+template<typename S, typename T>
+const attribute_t* variable_t<S, T>::get_attr(const std::string name) const {
+    return (const attribute_t*) this->attrs[this->find_dim(name)];
+}
+
+template<typename S, typename T>
+const attribute_t** variable_t<S, T>::get_attrs() const {
+    return (const attribute_t**) this->attrs;
+}
+
+template<typename S, typename T>
+void variable_t<S, T>::set_attrs(size_t num_attrs, attribute_t** attrs) {
+    this->clear_attrs();
+    this->num_attrs = num_attrs;
+    this->attrs = attrs;
+}
+
+template<typename S, typename T>
+void variable_t<S, T>::set_attrs(size_t num_attrs, const attribute_t** attrs) {
+    attribute_t** new_attrs = new attribute_t*[num_attrs];
+    for (size_t i = 0; i < num_attrs; i++) {
+        new_attrs[i] = new attribute_t(*attrs[i]);
+    }
+
+    this->set_attrs(num_attrs, new_attrs);
+}
+
+
+
+
+
+
+
+
+//))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+
+
+
+
+
+
+
+
+
+
+
 
 template<typename S, typename T>
 bool variable_t<S, T>::has_missing_value() const {

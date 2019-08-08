@@ -63,6 +63,9 @@ private:
     // Private Fields
     //==========================================================================
 
+    /** The number of attributes not used for missing/fill values in this variable */
+    size_t num_attrs = 0;
+
     /** The total number of dimensions in this variable */
     size_t num_dims = 0;
 
@@ -70,7 +73,7 @@ private:
     dimension_t<T>** dims = nullptr;
 
     /** This variable's attributes, excluding _FillValue and missing_value */
-    attribute_t** atts = nullptr;
+    attribute_t** attrs = nullptr;
 
     /** The striding of data in each dimension */
     size_t* striding = nullptr;
@@ -131,6 +134,8 @@ public:
 
     void clear_dims();
 
+    void clear_attrs();
+
 
 
     //==================================
@@ -156,6 +161,30 @@ public:
     void set_dims(size_t num_dims, dimension_t<T>** dims);
 
     void set_dims(size_t num_dims, const dimension_t<T>** dims);
+
+
+
+    size_t get_num_attrs() const;
+
+    bool has_attr(const std::string name) const;
+
+    size_t find_attr(const std::string name) const;
+
+    void rename_attr(size_t index, const std::string new_name);
+
+    void rename_attr(const std::string old_name, const std::string new_name);
+
+    const attribute_t* get_attr(size_t index) const;
+
+    const attribute_t* get_attr(const std::string name) const;
+
+    const attribute_t** get_attrs() const;
+
+    void set_attrs(size_t num_attrs, attribute_t** attrs);
+
+    void set_attrs(size_t num_attrs, const attribute_t** attrs);
+
+
 
     bool has_missing_value() const;
 
