@@ -337,11 +337,20 @@ int basic_interface(int argc, char** argv) {
 
     if (!args.do_hilbert && args.cvars_in.size() == 0) {
         vector<real_variable_t<float>*> vars_in;
+        vector<attribute_t**> attrs_global;
+        vector<size_t> num_attrs_global;
         for (string filename : args.files_in) {
             netcdf_file_t file(filename, NETCDF_READ);
             for (string varname : args.vars_in) {
                 vars_in.push_back(new real_variable_t<float>(varname, &file));
             }
+
+            attribute_t** attrs = new attribute_t*[file.get_n_attrs()];
+            for (size_t i = 0; i < file.get_n_attrs(); i++){
+                attrs[i] = new attribute_t(file.get_attr(i), &file);
+            }
+            attrs_global.push_back(attrs);
+            num_attrs_global.push_back(file.get_n_attrs());
         }
 
         time_t rend = time(nullptr);
@@ -357,8 +366,16 @@ int basic_interface(int argc, char** argv) {
         time_t wstart = time(nullptr); // writing time
 
         size_t i = 0;
-        for (string filename : args.files_out) {
+        for (size_t j = 0; j < args.files_out.size(); j++) {
+            string filename = args.files_out.at(j);
             netcdf_file_t file(filename, NETCDF_OVERWRITE);
+
+            for(size_t k = 0; k < num_attrs_global.at(j); k++){
+                attribute_t* attr = attrs_global.at(j)[k];
+                file.begin_def();
+                file.set_attr(attr->get_name(), attr->get_type(), attr->get_length(), attr->get_value());
+                file.end_def();
+            }
 
             for (string varname : args.vars_out) {
                 vars_out[i]->write(varname, &file);
