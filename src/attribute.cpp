@@ -142,5 +142,23 @@ void attribute_t::set_value(void* value) {
     this->value = value; // shallow copy alert!
 }
 
+bool attribute_t::operator==(const attribute_t& that) const {
 
+    if (this->name != that.get_name()) {
+        return false;
+    } else if (this->type != that.get_type()) {
+        return false;
+    } else if (this->length != that.get_length()){
+        return false;
+    } else if (!memcmp(this->value, that.get_value(), this->length)){
+        return false;
+    } else {
+        return true;
+    }
+
+}
+
+bool attribute_t::operator!=(const attribute_t& that) const {
+    return !(*this == that);
+}
 

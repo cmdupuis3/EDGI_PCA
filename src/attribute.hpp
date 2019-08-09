@@ -27,6 +27,9 @@
 /** Use std::string */
 #include <string>
 
+/** Use memcmp for NetCDF attributes */
+#include <cstring>
+
 #include "netcdf_file.hpp"
 
 
