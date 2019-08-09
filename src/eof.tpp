@@ -400,7 +400,26 @@ std::vector<variable_t<S, T>*> eof_t<S, T>::get_eofs(
         matrix_t<S>* restored = reducers[i]->restore(mat, 10.f*var->get_absmax());
         variable_t<S, T>* output = var->from_matrix(restored, input_dim, eof_dim);
 
+        // Copy all variable variables and dimension attributes where applicable
         output->set_attrs(var->get_num_attrs(), var->get_attrs());
+
+        for (size_t j = 0; j < var->get_num_dims(); j++){
+            if (var->get_dim(j) != eof_dim){
+                attribute_t** attrs = new attribute_t*[var->get_dim(j)->get_num_attrs()];
+                for (size_t k = 0; k < var->get_dim(j)->get_num_attrs(); k++){
+                    attrs[k] = new attribute_t(*(var->get_dim(j)->get_attr(k)));
+                }
+                for (size_t k = 0; k < output->get_num_dims(); k++){
+                    if (var->get_dim(j) == output->get_dim(k)){
+                        output->set_dim_attrs(k, var->get_dim(j)->get_num_attrs(), attrs);
+                    }
+                }
+            }
+        }
+
+        for (size_t k = 0; k < output->get_num_dims(); k++){
+            cout << endl << output->get_dim(k)->get_num_attrs() << endl;
+        }
 
         delete restored;
         delete mat;
@@ -548,7 +567,7 @@ std::vector<variable_t<S, T>*> eof_t<S, T>::calculate(
 
     const T* row = s.get_row(0);
     std::string output_dim = "eigenvalues";
-    dimension_t<T> eof_dim(output_dim, s.get_cols(), row);
+    dimension_t<T> eof_dim(output_dim, s.get_cols(), row, 0, nullptr);
     std::vector<variable_t<S, T>*> output_vars = this->get_eofs(input_vars, input_dim, &eof_dim, &u, reducers);
     delete[] row;
 

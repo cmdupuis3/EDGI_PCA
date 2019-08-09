@@ -69,7 +69,7 @@ private:
 
     void load_from_dim(const dimension_t<T>& dim);
 
-    void load_from_values(std::string name, size_t size, const T* values);
+    void load_from_values(std::string name, size_t size, const T* values, size_t num_attrs, attribute_t** attrs);
 
     void load_from_netcdf(std::string name, const netcdf_file_t* file);
 
@@ -88,7 +88,7 @@ public:
 
     dimension_t(const dimension_t<T>& dim);
 
-    dimension_t(std::string name, size_t size, const T* values);
+    dimension_t(std::string name, size_t size, const T* values, size_t num_attrs, attribute_t** attrs);
 
     dimension_t(std::string name, const netcdf_file_t* file);
 

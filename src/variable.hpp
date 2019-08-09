@@ -162,6 +162,10 @@ public:
 
     void set_dims(size_t num_dims, const dimension_t<T>** dims);
 
+    void set_dim_attrs(size_t index, size_t num_attrs, attribute_t** attrs);
+
+    void set_dim_attrs(size_t index, size_t num_attrs, const attribute_t** attrs);
+
 
 
     size_t get_num_attrs() const;

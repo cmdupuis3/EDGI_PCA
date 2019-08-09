@@ -39,12 +39,14 @@ template<typename T>
 void dimension_t<T>::load_from_dim(const dimension_t<T>& dim) {
     this->set_name(dim.name);
     this->set_values(dim.size, dim.values);
+    this->set_attrs(dim.get_num_attrs(), dim.get_attrs());
 }
 
 template<typename T>
-void dimension_t<T>::load_from_values(const std::string name, size_t size, const T* values) {
+void dimension_t<T>::load_from_values(const std::string name, size_t size, const T* values, size_t num_attrs, attribute_t** attrs) {
     this->set_name(name);
     this->set_values(size, values);
+    this->set_attrs(num_attrs, attrs);
 }
 
 template<typename T>
@@ -75,6 +77,16 @@ void dimension_t<T>::load_from_netcdf(const std::string name, const netcdf_file_
     T* values = file->get_var_vals<T>(var_id);
     this->set_name(name);
     this->set_values(file->get_dim_len(dim_id), values);
+
+    size_t num_attrs = file->get_n_attrs(var_id);
+    std::cout << std::endl << file->get_n_attrs(var_id) << std::endl;
+    attribute_t** attrs = new attribute_t*[num_attrs];
+    for (size_t i = 0; i < num_attrs; i++) {
+        std::string attr_name = file->get_attr(var_id, i);
+        attrs[i] = new attribute_t(attr_name, file, name);
+    }
+    this->set_attrs(num_attrs, attrs);
+
     delete[] values;
 }
 
@@ -93,8 +105,8 @@ dimension_t<T>::dimension_t(const dimension_t<T>& dim) {
 }
 
 template<typename T>
-dimension_t<T>::dimension_t(const std::string name, size_t size, const T* values) {
-    this->load_from_values(name, size, values);
+dimension_t<T>::dimension_t(const std::string name, size_t size, const T* values, size_t num_attrs, attribute_t** attrs) {
+    this->load_from_values(name, size, values, num_attrs, attrs);
 }
 
 template<typename T>

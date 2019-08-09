@@ -64,7 +64,7 @@ private:
     // Initializing
     //==================================
 
-    void load_from_attr(const attribute_t& att);
+    void load_from_attr(const attribute_t& attr);
 
     void load_from_value(std::string name, nc_type type, size_t type_size, size_t length, void* value);
 
@@ -85,7 +85,7 @@ public:
 
     attribute_t();
 
-    attribute_t(const attribute_t& dim);
+    attribute_t(const attribute_t& attr);
 
     attribute_t(std::string name, nc_type type, size_t type_size, size_t length, void* value);
 

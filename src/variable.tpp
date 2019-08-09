@@ -115,11 +115,11 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
     // Load the attributes (aside from missing value attributes)
     size_t num_attrs_filtered = num_attrs;
     for (size_t i = 0; i < num_attrs; i++) {
-        std::string att_name = file->get_attr(var_id, i);
-        if(att_name != "_FillValue" &&
-           att_name != "missing_value" &&
-           att_name != "missing_val"){
-            attrs[i] = new attribute_t(att_name, file, name);
+        std::string attr_name = file->get_attr(var_id, i);
+        if(attr_name != "_FillValue" &&
+           attr_name != "missing_value" &&
+           attr_name != "missing_val"){
+            attrs[i] = new attribute_t(attr_name, file, name);
         }else{
             num_attrs_filtered--;
         }
@@ -367,6 +367,21 @@ void variable_t<S, T>::set_attrs(size_t num_attrs, const attribute_t** attrs) {
     this->set_attrs(num_attrs, new_attrs);
 }
 
+template<typename S, typename T>
+void variable_t<S, T>::set_dim_attrs(size_t index, size_t num_attrs, attribute_t** attrs) {
+    this->dims[index]->clear_attrs();
+    this->dims[index]->set_attrs(num_attrs, attrs);
+}
+
+template<typename S, typename T>
+void variable_t<S, T>::set_dim_attrs(size_t index, size_t num_attrs, const attribute_t** attrs) {
+    attribute_t** new_attrs = new attribute_t*[num_attrs];
+    for (size_t i = 0; i < num_attrs; i++) {
+        new_attrs[i] = new attribute_t(*attrs[i]);
+    }
+    this->dims[index]->set_attrs(num_attrs, new_attrs);
+}
+
 
 template<typename S, typename T>
 bool variable_t<S, T>::has_missing_value() const {
@@ -461,6 +476,14 @@ void write_var(const variable_t<S, T>* var, const std::string name, netcdf_file_
             file->begin_def();
             var_id = file->def_var<T>(dim->get_name(), 1, &dim_ids[i]);
             file->end_def();
+            for(size_t j = 0; j < dim->get_num_attrs(); j++){
+                const attribute_t* attr = dim->get_attr(j);
+                if(!file->has_attr(var_id, attr->get_name())){
+                    file->begin_def();
+                    file->set_attr(var_id, attr->get_name(), attr->get_type(), attr->get_length(), attr->get_value());
+                    file->end_def();
+                }
+            }
         } else {
             var_id = file->get_var(dim->get_name());
         }
@@ -486,7 +509,6 @@ void write_var(const variable_t<S, T>* var, const std::string name, netcdf_file_
     }
 
     // Write the variable attributes
-    char* attr_names[var->get_num_attrs()];
     for(size_t i = 0; i < var->get_num_attrs(); i++){
         const attribute_t* attr = var->get_attr(i);
         if(!file->has_attr(var_id, attr->get_name())){
