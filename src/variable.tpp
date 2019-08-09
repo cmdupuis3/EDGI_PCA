@@ -486,6 +486,17 @@ void write_var(const variable_t<S, T>* var, const std::string name, netcdf_file_
         var_id = file->get_var(name);
     }
 
+    // Write the variable attributes
+    char* attr_names[var->get_num_attrs()];
+    for(size_t i = 0; i < var->get_num_attrs(); i++){
+        const attribute_t* attr = var->get_attr(i);
+        if(!file->has_attr(var_id, attr->get_name())){
+            file->begin_def();
+            file->set_attr(var_id, attr->get_name(), attr->get_type(), attr->get_length(), attr->get_value());
+            file->end_def();
+        }
+    }
+
     // Set its values and synchronize the file
     file->set_var_vals<S>(var_id, var->get_data());
     file->sync();

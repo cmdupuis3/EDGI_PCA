@@ -48,6 +48,8 @@ private:
 
     nc_type type = -100000; // something NetCDF won't treat as valid
 
+    size_t type_size = 0;
+
     size_t length = 0;
 
     void* value = nullptr;
@@ -64,7 +66,7 @@ private:
 
     void load_from_attr(const attribute_t& att);
 
-    void load_from_value(std::string name, nc_type type, size_t length, void* value);
+    void load_from_value(std::string name, nc_type type, size_t type_size, size_t length, void* value);
 
     void load_from_netcdf(std::string name, const netcdf_file_t* file, const std::string var_name);
 
@@ -85,7 +87,7 @@ public:
 
     attribute_t(const attribute_t& dim);
 
-    attribute_t(std::string name, nc_type type, size_t length, void* value);
+    attribute_t(std::string name, nc_type type, size_t type_size, size_t length, void* value);
 
     attribute_t(std::string name, const netcdf_file_t* file, const std::string var_name);
 
@@ -103,6 +105,8 @@ public:
 
     nc_type get_type() const;
 
+    size_t get_type_size() const;
+
     size_t get_length() const;
 
     const void* get_value() const;
@@ -110,6 +114,8 @@ public:
     void set_name(std::string);
 
     void set_type(nc_type type);
+
+    void set_type_size(size_t type_size);
 
     void set_length(size_t length);
 

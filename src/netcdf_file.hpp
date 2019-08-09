@@ -140,6 +140,11 @@ public:
     //==========================================================================
 
     /**
+     * Returns the size (in bytes) of the input type
+     */
+    size_t get_type_size(nc_type type) const;
+
+    /**
      * Returns the ID of the NetCDF file that this object contains
      */
     int get_file_id() const;
@@ -213,7 +218,7 @@ public:
     /**
      * Sets the value of the named attribute associated with the given variable
      */
-    void set_attr(netcdf_var_t var, const string name, nc_type type, size_t length, void* val);
+    void set_attr(netcdf_var_t var, const string name, nc_type type, size_t length, const void* val);
 
     /**
      * Returns the attribute type as an nc_type
@@ -248,7 +253,7 @@ public:
     /**
      * Sets the value of the named attribute associated with the given variable
      */
-    void set_attr(const string name, nc_type type, size_t length, void* val);
+    void set_attr(const string name, nc_type type, size_t length, const void* val);
 
     /**
      * Returns the attribute type as an nc_type

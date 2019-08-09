@@ -147,6 +147,14 @@ netcdf_file_t::~netcdf_file_t() {
 // Miscellaneous functions
 //==============================================================================
 
+size_t netcdf_file_t::get_type_size(nc_type type) const {
+    size_t type_size;
+    NETCDF_ERROR_CHECK(
+        nc_inq_type(this->get_file_id(), type, NULL, &type_size);
+    );
+    return type_size;
+}
+
 int netcdf_file_t::get_file_id() const {
     return this->file_id;
 }
@@ -279,7 +287,7 @@ string netcdf_file_t::get_attr(netcdf_var_t var, int index) const {
     return string(name);
 }
 
-void netcdf_file_t::set_attr(netcdf_var_t var, const string name, nc_type type, size_t length, void* val) {
+void netcdf_file_t::set_attr(netcdf_var_t var, const string name, nc_type type, size_t length, const void* val) {
     NETCDF_ERROR_CHECK(
         nc_put_att(this->get_file_id(), (int) var, name.c_str(), type, length, val)
     );
@@ -304,13 +312,7 @@ size_t netcdf_file_t::get_attr_len(netcdf_var_t var, const string name) const {
 void* netcdf_file_t::get_attr_val(netcdf_var_t var, const string name) const {
     size_t length = this->get_attr_len(var, name);
     nc_type type = this->get_attr_type(var, name);
-
-    size_t type_size;
-    NETCDF_ERROR_CHECK(
-        nc_inq_type(this->get_file_id(), type, NULL, &type_size);
-    );
-
-    void* buffer = malloc(length * type_size);
+    void* buffer = malloc(length * this->get_type_size(type));
 
     NETCDF_ERROR_CHECK(
         nc_get_att(this->get_file_id(), (int) var, name.c_str(), buffer)
@@ -334,7 +336,7 @@ string netcdf_file_t::get_attr(int index) const {
     return this->get_attr( (netcdf_var_t) NC_GLOBAL, index);
 }
 
-void netcdf_file_t::set_attr(const string name, nc_type type, size_t length, void* val) {
+void netcdf_file_t::set_attr(const string name, nc_type type, size_t length, const void* val) {
     this->set_attr( (netcdf_var_t) NC_GLOBAL, name, type, length, val);
 }
 

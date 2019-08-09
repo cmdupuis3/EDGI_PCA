@@ -37,13 +37,15 @@
 void attribute_t::load_from_attr(const attribute_t& att) {
     this->set_name(att.name);
     this->set_type(att.type);
+    this->set_type_size(att.type_size);
     this->set_length(att.length);
     this->set_value(att.value);
 }
 
-void attribute_t::load_from_value(std::string name, nc_type type, size_t length, void* value) {
+void attribute_t::load_from_value(std::string name, nc_type type, size_t type_size, size_t length, void* value) {
     this->set_name(name);
     this->set_type(type);
+    this->set_type_size(type_size);
     this->set_length(length);
     this->set_value(value);
 }
@@ -59,6 +61,7 @@ void attribute_t::load_from_netcdf(const std::string name, const netcdf_file_t* 
 
     this->set_name(name);
     this->set_type(file->get_attr_type(var_id, name));
+    this->set_type_size(file->get_type_size(this->type));
     this->set_length(file->get_attr_len(var_id, name));
     this->set_value(file->get_attr_val(var_id, name));
 
@@ -73,6 +76,7 @@ void attribute_t::load_from_netcdf(const std::string name, const netcdf_file_t* 
 
     this->set_name(name);
     this->set_type(file->get_attr_type(name));
+    this->set_type_size(file->get_type_size(this->type));
     this->set_length(file->get_attr_len(name));
     this->set_value(file->get_attr_val(name));
 
@@ -90,8 +94,8 @@ attribute_t::attribute_t(const attribute_t& attr) {
     this->load_from_attr(attr);
 }
 
-attribute_t::attribute_t(std::string name, nc_type type, size_t length, void* value) {
-    this->load_from_value(name, type, length, value);
+attribute_t::attribute_t(std::string name, nc_type type, size_t type_size, size_t length, void* value) {
+    this->load_from_value(name, type, type_size, length, value);
 }
 
 attribute_t::attribute_t(std::string name, const netcdf_file_t* file, const std::string var_name){
@@ -118,6 +122,10 @@ nc_type attribute_t::get_type() const {
     return this->type;
 }
 
+size_t attribute_t::get_type_size() const {
+    return this->type_size;
+}
+
 size_t attribute_t::get_length() const {
     return this->length;
 }
@@ -132,6 +140,10 @@ void attribute_t::set_name(std::string name) {
 
 void attribute_t::set_type(nc_type type) {
     this->type = type;
+}
+
+void attribute_t::set_type_size(size_t type_size) {
+    this->type_size = type_size;
 }
 
 void attribute_t::set_length(size_t length) {
@@ -150,7 +162,7 @@ bool attribute_t::operator==(const attribute_t& that) const {
         return false;
     } else if (this->length != that.get_length()){
         return false;
-    } else if (!memcmp(this->value, that.get_value(), this->length)){
+    } else if (!memcmp(this->value, that.get_value(), this->length * this->type_size)){
         return false;
     } else {
         return true;
