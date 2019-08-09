@@ -25,6 +25,8 @@
 #include "utils.hpp"
 #include "debug.hpp"
 
+#include "variable.hpp"
+
 #include <complex>
 #include <iostream>
 
@@ -118,14 +120,21 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
            att_name != "missing_value" &&
            att_name != "missing_val"){
             attrs[i] = new attribute_t(att_name, file, name);
-            cout << endl << attrs[i]->get_name() << "; " << attrs[i]->get_type() << "; " << attrs[i]->get_length() << endl;
         }else{
             num_attrs_filtered--;
         }
     }
 
+    attribute_t** attrs_filtered = new attribute_t*[num_attrs_filtered];
+    size_t j = 0;
+    for(size_t i = 0; i < num_attrs_filtered; i++){
+        while(attrs[i+j] == nullptr) j++;
+        attrs_filtered[i] = attrs[i+j];
+        cout << endl << attrs_filtered[i]->get_name() << "; " << attrs_filtered[i]->get_type() << "; " << attrs_filtered[i]->get_length() << endl;
+    }
+
     // Set the name and dimensions
-    this->set_attrs(num_attrs_filtered, attrs);
+    this->set_attrs(num_attrs_filtered, attrs_filtered);
 
     // Load the data from NetCDF
     if (this->data != nullptr) {
@@ -344,7 +353,7 @@ const attribute_t** variable_t<S, T>::get_attrs() const {
 
 template<typename S, typename T>
 void variable_t<S, T>::set_attrs(size_t num_attrs, attribute_t** attrs) {
-    this->clear_attrs();
+    //this->clear_attrs();
     this->num_attrs = num_attrs;
     this->attrs = attrs;
 }
@@ -755,6 +764,13 @@ variable_t<std::complex<S>, T>* make_complex_variable(variable_t<S, T>* real, va
 
         dims[i] = new dimension_t<T>(*real->get_dim(i));
         size *= dims[i]->get_size();
+    }
+
+
+    // Copy attributes from both variables
+    attribute_t** attrs = new attribute_t*[real->get_num_attrs() + imag->get_num_attrs()];
+    for (size_t i = 0; i < real->get_num_attrs(); i++) {
+        // TODO: fill this in
     }
 
     // Create the resulting complex variable

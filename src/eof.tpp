@@ -1,7 +1,7 @@
 /***********************************************************************
  *                   GNU Lesser General Public License
  *
- * This file is part of the EDGI prototype package, developed by the 
+ * This file is part of the EDGI prototype package, developed by the
  * GFDL Flexible Modeling System (FMS) group.
  *
  * EDGI is free software: you can redistribute it and/or modify it under
@@ -52,7 +52,7 @@ void get_mean()
 
 template<typename S>
 void standardize(size_t len, S* data) {
-    
+
 }
 */
 
@@ -80,12 +80,12 @@ void eof_t<S, T>::match_dimensions(
 ) {
     //if (this->interp != nullptr) {
         // TODO interpolate!
-        
+
     //} else {
         if (dim0->get_size() != dim1->get_size()) {
             throw eof_error_t("Input dimension lengths do not match");
         }
-        
+
         size_t size = dim0->get_size();
         const T* vals0 = dim0->get_values();
         const T* vals1 = dim1->get_values();
@@ -122,17 +122,17 @@ void eof_t<S, T>::match_dimension_in_all_variables(
             throw eof_error_t("At least one variable doesn't contain dimension \"" + dim_name + "\"");
         }
     }
-    
+
     // Check every pair of variables for equality in the selected dimension
     // (since comparing dimension values for equality may not be transitive)
     for (size_t i = 0; i < input_vars.size(); i++) {
         const variable_t<S, T>* var0 = input_vars[i];
         const dimension_t<T>* dim0 = var0->get_dim(var0->find_dim(dim_name));
-        
+
         for (size_t j = i + 1; j < input_vars.size(); j++) {
             const variable_t<S, T>* var1 = input_vars[j];
             const dimension_t<T>* dim1 = var1->get_dim(var1->find_dim(dim_name));
-            
+
             this->match_dimensions(dim0, dim1, cmp);
         }
     }
@@ -335,26 +335,26 @@ void eof_t<S, T>::make_covariance_matrix(
     for (size_t i = 0; i < num_vars; i++) {
         variable_t<S, T>* var = input_vars[i];
         matrix_t<S>* unreduced = var->to_matrix(dim);
-        
+
         if (var->has_missing_value()) {
             reducers[i] = new matrix_reducer_t<S>(unreduced, var->get_missing_value());
         } else {
             reducers[i] = new matrix_reducer_t<S>(unreduced, always_false<S>());
         }
-        
+
         size += reducers[i]->get_reduced_cols();
         matrices[i] = reducers[i]->reduce(unreduced);
         delete unreduced;
     }
-    
+
     cov->set_shape(size, size);
-    
+
     // TODO interpolate here? The data is organized into neat matrices so this
     // is probably the best place to interpolate
-    
+
     // This assumes that all matrices have the same number of rows. If we
     // need to, we've already interpolated
-    
+
     // kernel calls
     if(is_circular){
         this->circular_covariance_kernal(num_vars, matrices, cov, num_threads);
@@ -389,23 +389,30 @@ std::vector<variable_t<S, T>*> eof_t<S, T>::get_eofs(
     matrix_reducer_t<S>** reducers
 ) {
     std::vector<variable_t<S, T>*> output_vars;
-    
+
     size_t col = 0;
     for (size_t i = 0; i < input_vars.size(); i++) {
         variable_t<S, T>* var = input_vars[i];
+
+        cout << endl << var->get_num_attrs() << endl;
+
         size_t size = reducers[i]->get_reduced_cols();
-        
+
         matrix_t<S>* mat = u->get_submatrix(0, col, u->get_rows(), size);
         matrix_t<S>* restored = reducers[i]->restore(mat, 10.f*var->get_absmax());
         variable_t<S, T>* output = var->from_matrix(restored, input_dim, eof_dim);
 
+        output->set_attrs(var->get_num_attrs(), var->get_attrs());
+
+        cout << endl << output->get_num_attrs() << endl;
+
         delete restored;
         delete mat;
-        
+
         output_vars.push_back(output);
         col += size;
     }
-    
+
     return output_vars;
 }
 
@@ -457,7 +464,7 @@ void eof_t<S, T>::set_interp(interp_t<S>* interp) {
     if (this->interp != nullptr) {
         delete this->interp;
     }
-    
+
     this->interp = interp;
 }
 */
@@ -523,7 +530,7 @@ std::vector<variable_t<S, T>*> eof_t<S, T>::calculate(
     if (input_vars.size() == 0) {
         throw eof_error_t("No variables to be analyzed");
     }
-    
+
     if(is_spectral){
         if(omegas_len == -1){
             FATAL("Number of spectral frequencies was not specified.")
@@ -534,25 +541,25 @@ std::vector<variable_t<S, T>*> eof_t<S, T>::calculate(
     }
 
     this->match_dimension_in_all_variables(input_vars, input_dim);
-    
+
     matrix_t<S> cov;
     matrix_reducer_t<S>* reducers[input_vars.size()];
     this->make_covariance_matrix(input_vars, input_dim, &cov, reducers, input_nthreads, is_circular, is_spectral, omegas_len, omegas);
-    
+
     matrix_t<T> s;
     matrix_t<S> u;
     this->svd->calculate(&cov, &u, &s, nullptr);
-    
+
     const T* row = s.get_row(0);
     std::string output_dim = "eigenvalues";
     dimension_t<T> eof_dim(output_dim, s.get_cols(), row);
     std::vector<variable_t<S, T>*> output_vars = this->get_eofs(input_vars, input_dim, &eof_dim, &u, reducers);
     delete[] row;
-    
+
     for (size_t i = 0; i < input_vars.size(); i++) {
         delete reducers[i];
     }
-    
+
     return output_vars;
 }
 
