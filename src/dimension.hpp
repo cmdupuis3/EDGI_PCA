@@ -95,6 +95,7 @@ public:
     ~dimension_t();
 
 
+    void clear_attrs();
 
     //==================================
     // Getting and Setting Fields

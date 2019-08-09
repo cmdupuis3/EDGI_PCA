@@ -394,8 +394,6 @@ std::vector<variable_t<S, T>*> eof_t<S, T>::get_eofs(
     for (size_t i = 0; i < input_vars.size(); i++) {
         variable_t<S, T>* var = input_vars[i];
 
-        cout << endl << var->get_num_attrs() << endl;
-
         size_t size = reducers[i]->get_reduced_cols();
 
         matrix_t<S>* mat = u->get_submatrix(0, col, u->get_rows(), size);
@@ -403,8 +401,6 @@ std::vector<variable_t<S, T>*> eof_t<S, T>::get_eofs(
         variable_t<S, T>* output = var->from_matrix(restored, input_dim, eof_dim);
 
         output->set_attrs(var->get_num_attrs(), var->get_attrs());
-
-        cout << endl << output->get_num_attrs() << endl;
 
         delete restored;
         delete mat;

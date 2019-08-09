@@ -130,7 +130,6 @@ void variable_t<S, T>::load_from_netcdf(const std::string name, const netcdf_fil
     for(size_t i = 0; i < num_attrs_filtered; i++){
         while(attrs[i+j] == nullptr) j++;
         attrs_filtered[i] = attrs[i+j];
-        cout << endl << attrs_filtered[i]->get_name() << "; " << attrs_filtered[i]->get_type() << "; " << attrs_filtered[i]->get_length() << endl;
     }
 
     // Set the name and dimensions
@@ -353,7 +352,7 @@ const attribute_t** variable_t<S, T>::get_attrs() const {
 
 template<typename S, typename T>
 void variable_t<S, T>::set_attrs(size_t num_attrs, attribute_t** attrs) {
-    //this->clear_attrs();
+    this->clear_attrs();
     this->num_attrs = num_attrs;
     this->attrs = attrs;
 }

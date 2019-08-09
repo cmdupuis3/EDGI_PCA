@@ -109,7 +109,18 @@ dimension_t<T>::~dimension_t() {
 }
 
 
+template<typename T>
+void dimension_t<T>::clear_attrs() {
+    if (this->attrs != nullptr) {
+        for (size_t i = 0; i < this->get_num_attrs(); i++) {
+            delete this->attrs[i];
+        }
+        delete[] this->attrs;
+        this->attrs = nullptr;
+    }
 
+    this->num_attrs = 0;
+}
 
 
 //======================================
@@ -170,7 +181,7 @@ const attribute_t** dimension_t<T>::get_attrs() const {
 
 template<typename T>
 void dimension_t<T>::set_attrs(size_t num_attrs, attribute_t** attrs) {
-    //this->clear_attrs();
+    this->clear_attrs();
     this->num_attrs = num_attrs;
     this->attrs = attrs;
 }
