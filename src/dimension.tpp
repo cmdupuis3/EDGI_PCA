@@ -79,31 +79,6 @@ void dimension_t<T>::load_from_netcdf(const std::string name, const netcdf_file_
 }
 
 
-
-
-
-//======================================
-// Setting Fields
-//======================================
-
-template<typename T>
-void dimension_t<T>::set_name(const std::string name) {
-    this->name = name;
-}
-
-template<typename T>
-void dimension_t<T>::set_values(size_t size, const T* values) {
-    this->size = size;
-    this->values = new T[size];
-    for (size_t i = 0; i < size; i++) {
-        this->values[i] = values[i];
-    }
-}
-
-
-
-
-
 //==============================================================================
 // Public Methods
 //==============================================================================
@@ -142,6 +117,75 @@ dimension_t<T>::~dimension_t() {
 //======================================
 
 template<typename T>
+size_t dimension_t<T>::get_num_attrs() const {
+    return this->num_attrs;
+}
+
+template<typename T>
+bool dimension_t<T>::has_attr(const std::string name) const {
+    for (size_t i = 0; i < this->get_num_attrs(); i++) {
+        if (name == this->attrs[i]->get_name()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+template<typename T>
+size_t dimension_t<T>::find_attr(const std::string name) const {
+    for (size_t i = 0; i < this->get_num_attrs(); i++) {
+        if (name == this->attrs[i]->get_name()) {
+            return i;
+        }
+    }
+
+    throw eof_error_t("Requested attribute does not exist");
+}
+
+template<typename T>
+void dimension_t<T>::rename_attr(size_t index, const std::string new_name) {
+    this->attrs[index]->set_name(new_name);
+}
+
+template<typename T>
+void dimension_t<T>::rename_attr(const std::string old_name, const std::string new_name) {
+    this->attrs[this->find_attr(old_name)]->set_name(new_name);
+}
+
+template<typename T>
+const attribute_t* dimension_t<T>::get_attr(size_t index) const {
+    return (const attribute_t*) this->attrs[index];
+}
+
+template<typename T>
+const attribute_t* dimension_t<T>::get_attr(const std::string name) const {
+    return (const attribute_t*) this->attrs[this->find_attr(name)];
+}
+
+template<typename T>
+const attribute_t** dimension_t<T>::get_attrs() const {
+    return (const attribute_t**) this->attrs;
+}
+
+template<typename T>
+void dimension_t<T>::set_attrs(size_t num_attrs, attribute_t** attrs) {
+    //this->clear_attrs();
+    this->num_attrs = num_attrs;
+    this->attrs = attrs;
+}
+
+template<typename T>
+void dimension_t<T>::set_attrs(size_t num_attrs, const attribute_t** attrs) {
+    attribute_t** new_attrs = new attribute_t*[num_attrs];
+    for (size_t i = 0; i < num_attrs; i++) {
+        new_attrs[i] = new attribute_t(*attrs[i]);
+    }
+
+    this->set_attrs(num_attrs, new_attrs);
+}
+
+template<typename T>
 const std::string dimension_t<T>::get_name() const {
     return this->name;
 }
@@ -156,6 +200,19 @@ const T* dimension_t<T>::get_values() const {
     return this->values;
 }
 
+template<typename T>
+void dimension_t<T>::set_name(const std::string name) {
+    this->name = name;
+}
+
+template<typename T>
+void dimension_t<T>::set_values(size_t size, const T* values) {
+    this->size = size;
+    this->values = new T[size];
+    for (size_t i = 0; i < size; i++) {
+        this->values[i] = values[i];
+    }
+}
 
 
 

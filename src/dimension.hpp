@@ -53,7 +53,11 @@ private:
 
     T* values = nullptr;
 
+    /** The number of attributes not used for missing/fill values in this dimension's variable */
+    size_t num_attrs = 0;
 
+    /** This dimension variable's attributes */
+    attribute_t** attrs = nullptr;
 
     //==========================================================================
     // Private Methods
@@ -95,6 +99,28 @@ public:
     //==================================
     // Getting and Setting Fields
     //==================================
+
+    size_t get_num_attrs() const;
+
+    bool has_attr(const std::string name) const;
+
+    size_t find_attr(const std::string name) const;
+
+    void rename_attr(size_t index, const std::string new_name);
+
+    void rename_attr(const std::string old_name, const std::string new_name);
+
+    const attribute_t* get_attr(size_t index) const;
+
+    const attribute_t* get_attr(const std::string name) const;
+
+    const attribute_t** get_attrs() const;
+
+    void set_attrs(size_t num_attrs, attribute_t** attrs);
+
+    void set_attrs(size_t num_attrs, const attribute_t** attrs);
+
+
 
     const std::string get_name() const;
 

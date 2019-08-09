@@ -343,7 +343,7 @@ const attribute_t* variable_t<S, T>::get_attr(size_t index) const {
 
 template<typename S, typename T>
 const attribute_t* variable_t<S, T>::get_attr(const std::string name) const {
-    return (const attribute_t*) this->attrs[this->find_dim(name)];
+    return (const attribute_t*) this->attrs[this->find_attr(name)];
 }
 
 template<typename S, typename T>
