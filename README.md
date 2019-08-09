@@ -74,7 +74,7 @@ and have been gathered at the top.
     `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -d time -n 32 -C`
 
 * Spectral variable:  
-    `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -d time -n 32 -S`
+    `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -d frequency -n 32 -S`
 
 * EOFs along ensemble member dimension:  
     `edgi -f file1.nc:file1_eofs.nc -v var:var_eofs -d member -n 32`
