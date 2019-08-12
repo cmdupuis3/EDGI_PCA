@@ -1,7 +1,7 @@
 /***********************************************************************
  *                   GNU Lesser General Public License
  *
- * This file is part of the EDGI prototype package, developed by the 
+ * This file is part of the EDGI prototype package, developed by the
  * GFDL Flexible Modeling System (FMS) group.
  *
  * EDGI is free software: you can redistribute it and/or modify it under
@@ -58,7 +58,7 @@ static void reduce_cols(
             count++;
         }
     }
-    
+
     *reduced_size = count;
 }
 
@@ -79,7 +79,7 @@ matrix_reducer_t<T>::matrix_reducer_t(matrix_t<T>* mat, std::function<bool(T)> p
     //      [1 NaN 3]
     //      [4  5  6]
     //      [7 NaN 9]
-    
+
     // Reduce cols
     this->num_restored_cols = mat->get_cols();
     this->map_restored_cols = new int[this->num_restored_cols];
@@ -97,11 +97,11 @@ template<typename T>
 matrix_t<T>* matrix_reducer_t<T>::reduce(const matrix_t<T>* mat) const {
     size_t rows = mat->get_rows();
     matrix_t<T>* reduced = new matrix_t<T>(rows, this->num_reduced_cols);
-    
+
     T buffer[rows];
     for (size_t c = 0; c < this->num_reduced_cols; c++) {
         int mapped_c = this->map_reduced_cols[c];
-        
+
         if (mapped_c < 0) {
             throw eof_error_t("(Internal Error) Negative map value during reduction");
         } else {
@@ -117,16 +117,16 @@ template<typename T>
 matrix_t<T>* matrix_reducer_t<T>::restore(const matrix_t<T>* mat, T fill) const {
     size_t rows = mat->get_rows();
     matrix_t<T>* restored = new matrix_t<T>(rows, this->num_restored_cols);
-    
+
     T fill_buffer[rows];
     for (size_t i = 0; i < rows; i++) {
         fill_buffer[i] = fill;
     }
-    
+
     T buffer[rows];
     for (size_t c = 0; c < this->num_restored_cols; c++) {
         int mapped_c = this->map_restored_cols[c];
-        
+
         if (mapped_c < 0) {
             restored->set_col(c, fill_buffer);
         } else {
@@ -134,7 +134,7 @@ matrix_t<T>* matrix_reducer_t<T>::restore(const matrix_t<T>* mat, T fill) const 
             restored->set_col(c, buffer);
         }
     }
-    
+
     return restored;
 }
 template<typename T>

@@ -79,7 +79,6 @@ void dimension_t<T>::load_from_netcdf(const std::string name, const netcdf_file_
     this->set_values(file->get_dim_len(dim_id), values);
 
     size_t num_attrs = file->get_n_attrs(var_id);
-    std::cout << std::endl << file->get_n_attrs(var_id) << std::endl;
     attribute_t** attrs = new attribute_t*[num_attrs];
     for (size_t i = 0; i < num_attrs; i++) {
         std::string attr_name = file->get_attr(var_id, i);

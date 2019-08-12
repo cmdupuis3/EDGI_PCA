@@ -291,11 +291,11 @@ void eof_t<S, T>::circular_covariance_kernal(
                     thread = omp_get_thread_num();
 
                     m->get_col(x, (S*) slice1[thread]);
-                    subtract_mean(len, slice1[thread]);
+                    //subtract_mean(len, slice1[thread]);
 
                     for (size_t y = 0; y < ymax; y++) {
                         n->get_col(y, (S*) slice2[thread]);
-                        subtract_mean(len, slice2[thread]);
+                        //subtract_mean(len, slice2[thread]);
 
                         // Calculate the covariance of those two slices
                         cov->at(x + row_offset, y + col_offset) = circ_cov(slice1[thread], slice2[thread], len);
@@ -336,11 +336,16 @@ void eof_t<S, T>::make_covariance_matrix(
         variable_t<S, T>* var = input_vars[i];
         matrix_t<S>* unreduced = var->to_matrix(dim);
 
+
+        cout << endl << unreduced->get_cols() << endl;
+
         if (var->has_missing_value()) {
             reducers[i] = new matrix_reducer_t<S>(unreduced, var->get_missing_value());
         } else {
             reducers[i] = new matrix_reducer_t<S>(unreduced, always_false<S>());
         }
+
+        cout << endl << reducers[i]->get_reduced_cols() << endl;
 
         size += reducers[i]->get_reduced_cols();
         matrices[i] = reducers[i]->reduce(unreduced);
@@ -415,10 +420,6 @@ std::vector<variable_t<S, T>*> eof_t<S, T>::get_eofs(
                     }
                 }
             }
-        }
-
-        for (size_t k = 0; k < output->get_num_dims(); k++){
-            cout << endl << output->get_dim(k)->get_num_attrs() << endl;
         }
 
         delete restored;
