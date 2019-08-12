@@ -1,7 +1,7 @@
 /***********************************************************************
  *                   GNU Lesser General Public License
  *
- * This file is part of the EDGI prototype package, developed by the 
+ * This file is part of the EDGI prototype package, developed by the
  * GFDL Flexible Modeling System (FMS) group.
  *
  * EDGI is free software: you can redistribute it and/or modify it under
@@ -54,7 +54,7 @@ using std::string;
 //==============================================================================
 
 namespace {
-    
+
     size_t product(int len, const size_t arr[]) {
         size_t prod = 1;
         for (int i = 0; i < len; i++) {
@@ -62,7 +62,7 @@ namespace {
         }
         return prod;
     }
-    
+
 }
 
 
@@ -75,38 +75,38 @@ namespace {
 
 void netcdf_file_t::init(const string filename, netcdf_mode_t mode) {
     const char* cstr = filename.c_str();
-    
+
     if (mode == NETCDF_READ) {
         NETCDF_ERROR_CHECK_MSG(
             "Failed to open file \"" + filename + "\". ",
             nc_open(cstr, NC_NOWRITE, &this->file_id)
         );
-        
+
     } else if (mode == NETCDF_WRITE) {
         try {
             NETCDF_ERROR_CHECK(
                 nc_create(cstr, NC_NETCDF4 | NC_CLASSIC_MODEL | NC_NOCLOBBER, &this->file_id)
             );
             this->end_def();
-            
+
         } catch (eof_error_t) {
             NETCDF_ERROR_CHECK_MSG(
                 "Failed to open file \"" + filename + "\". ",
                 nc_open(cstr, NC_WRITE, &this->file_id)
             );
         }
-        
+
     } else if (mode == NETCDF_OVERWRITE) {
         NETCDF_ERROR_CHECK_MSG(
             "Failed to open file \"" + filename + "\". ",
             nc_create(cstr, NC_NETCDF4 | NC_CLASSIC_MODEL | NC_CLOBBER, &this->file_id)
         );
         this->end_def();
-        
+
     } else {
         throw eof_error_t("Package error: this statement should be unreachable");
     }
-    
+
     this->close_file = true;
     this->closed = false;
 }
@@ -146,6 +146,14 @@ netcdf_file_t::~netcdf_file_t() {
 //==============================================================================
 // Miscellaneous functions
 //==============================================================================
+
+size_t netcdf_file_t::get_type_size(nc_type type) const {
+    size_t type_size;
+    NETCDF_ERROR_CHECK(
+        nc_inq_type(this->get_file_id(), type, NULL, &type_size);
+    );
+    return type_size;
+}
 
 int netcdf_file_t::get_file_id() const {
     return this->file_id;
@@ -248,6 +256,16 @@ void netcdf_file_t::set_fill<double>(netcdf_var_t var, const double fill_value, 
     );
 }
 
+
+
+size_t netcdf_file_t::get_n_attrs(netcdf_var_t var) const {
+    int n;
+    NETCDF_ERROR_CHECK(
+        nc_inq_varnatts(this->get_file_id(), (int) var, &n);
+    );
+    return n;
+}
+
 bool netcdf_file_t::has_attr(netcdf_var_t var, const string name) const {
     int attr;
     int status = nc_inq_attid(this->get_file_id(), (int) var, name.c_str(), &attr);
@@ -261,72 +279,78 @@ bool netcdf_file_t::has_attr(netcdf_var_t var, const string name) const {
     }
 }
 
-template<>
-int netcdf_file_t::get_attr<int>(netcdf_var_t var, const string name) const {
-    int val;
+string netcdf_file_t::get_attr(netcdf_var_t var, int index) const {
+    char* name = new char[NC_MAX_NAME + 1];
     NETCDF_ERROR_CHECK(
-        nc_get_att_int(this->get_file_id(), (int) var, name.c_str(), &val)
+        nc_inq_attname(this->get_file_id(), (int) var, index, name);
     );
-    return val;
+    return string(name);
 }
 
-template<>
-long netcdf_file_t::get_attr<long>(netcdf_var_t var, const string name) const {
-    long val;
+void netcdf_file_t::set_attr(netcdf_var_t var, const string name, nc_type type, size_t length, const void* val) {
     NETCDF_ERROR_CHECK(
-        nc_get_att_long(this->get_file_id(), (int) var, name.c_str(), &val)
-    );
-    return val;
-}
-
-template<>
-float netcdf_file_t::get_attr<float>(netcdf_var_t var, const string name) const {
-    float val;
-    NETCDF_ERROR_CHECK(
-        nc_get_att_float(this->get_file_id(), (int) var, name.c_str(), &val)
-    );
-    return val;
-}
-
-template<>
-double netcdf_file_t::get_attr<double>(netcdf_var_t var, const string name) const {
-    double val;
-    NETCDF_ERROR_CHECK(
-        nc_get_att_double(this->get_file_id(), (int) var, name.c_str(), &val)
-    );
-    return val;
-}
-
-template<>
-void netcdf_file_t::set_attr<int>(netcdf_var_t var, const string name, int val) {
-    NETCDF_ERROR_CHECK(
-        nc_put_att_int(this->get_file_id(), (int) var, name.c_str(), NC_INT, 1, &val)
+        nc_put_att(this->get_file_id(), (int) var, name.c_str(), type, length, val)
     );
 }
 
-template<>
-void netcdf_file_t::set_attr<long>(netcdf_var_t var, const string name, long val) {
+nc_type netcdf_file_t::get_attr_type(netcdf_var_t var, const string name) const {
+    nc_type type;
     NETCDF_ERROR_CHECK(
-        nc_put_att_long(this->get_file_id(), (int) var, name.c_str(), NC_LONG, 1, &val)
+        nc_inq_atttype(this->get_file_id(), (int) var, name.c_str(), &type)
     );
+    return type;
 }
 
-template<>
-void netcdf_file_t::set_attr<float>(netcdf_var_t var, const string name, float val) {
+size_t netcdf_file_t::get_attr_len(netcdf_var_t var, const string name) const {
+    size_t length;
     NETCDF_ERROR_CHECK(
-        nc_put_att_float(this->get_file_id(), (int) var, name.c_str(), NC_FLOAT, 1, &val)
+        nc_inq_attlen(this->get_file_id(), (int) var, name.c_str(), &length)
     );
+    return length;
 }
 
-template<>
-void netcdf_file_t::set_attr<double>(netcdf_var_t var, const string name, double val) {
+void* netcdf_file_t::get_attr_val(netcdf_var_t var, const string name) const {
+    size_t length = this->get_attr_len(var, name);
+    nc_type type = this->get_attr_type(var, name);
+    void* buffer = malloc(length * this->get_type_size(type));
+
     NETCDF_ERROR_CHECK(
-        nc_put_att_double(this->get_file_id(), (int) var, name.c_str(), NC_DOUBLE, 1, &val)
+        nc_get_att(this->get_file_id(), (int) var, name.c_str(), buffer)
     );
+    return buffer;
 }
 
+size_t netcdf_file_t::get_n_attrs() const {
+    int n;
+    NETCDF_ERROR_CHECK(
+        nc_inq_natts(this->get_file_id(), &n);
+    );
+    return n;
+}
 
+bool netcdf_file_t::has_attr(const string name) const {
+    return this->has_attr( (netcdf_var_t) NC_GLOBAL, name);
+}
 
+string netcdf_file_t::get_attr(int index) const {
+    return this->get_attr( (netcdf_var_t) NC_GLOBAL, index);
+}
+
+void netcdf_file_t::set_attr(const string name, nc_type type, size_t length, const void* val) {
+    this->set_attr( (netcdf_var_t) NC_GLOBAL, name, type, length, val);
+}
+
+nc_type netcdf_file_t::get_attr_type(const string name) const {
+    return this->get_attr_type( (netcdf_var_t) NC_GLOBAL, name);
+}
+
+size_t netcdf_file_t::get_attr_len(const string name) const {
+    return this->get_attr_len( (netcdf_var_t) NC_GLOBAL, name);
+}
+
+void* netcdf_file_t::get_attr_val(const string name) const {
+    return this->get_attr_val( (netcdf_var_t) NC_GLOBAL, name);
+}
 
 
 //==============================================================================
@@ -452,7 +476,7 @@ size_t netcdf_file_t::get_var_len(netcdf_var_t var) const {
     size_t n_dims = this->get_var_n_dims(var);
     int dim_ids[n_dims];
     size_t dim_lens[n_dims];
-    
+
     NETCDF_ERROR_CHECK(
         nc_inq_vardimid(this->get_file_id(), (int) var, dim_ids)
     );
