@@ -52,7 +52,13 @@ int example_2(int argc, char** argv);
 int basic_interface(int argc, char** argv);
 
 int main(int argc, char** argv) {
-    return basic_interface(argc, argv);
+    arg_data_t args;
+    if (!parse_args(to_str_vec(argv + 1, argc - 1), &args)) {
+        usage(string(argv[0]));
+        return 1;
+    }
+    
+    return basic_interface(args);
 }
 
 
@@ -323,12 +329,7 @@ void usage(string cmd) {
 // Sample usage:
 //     bin/main.x -f sample.nc:sample_eofs.nc -v a:a_eof b:b_eof c:c_eof -ai:ai_eof bi:bi_eof ci:ci_eof -d time:eof_coef
 
-int basic_interface(int argc, char** argv) {
-    arg_data_t args;
-    if (!parse_args(to_str_vec(argv + 1, argc - 1), &args)) {
-        usage(string(argv[0]));
-        return 1;
-    }
+int basic_interface(arg_data_t args) {
 
     cout << endl << args.ncores_in << " cores: ";
 
