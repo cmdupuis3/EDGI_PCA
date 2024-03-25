@@ -3,14 +3,14 @@
 
 ### Chris Dupuis and Curtis Bechtel
 
-A command line utility for computing empirical orthogonal
-functions (EOFs) from data stored in NetCDF files.
+A command line utility for computing principal component 
+analyses (or empirical orthogonal functions) from data 
+stored in NetCDF files.
 
-This prototype version demonstrates parallel computation
-of several flavors of principal component analysis (PCA;
-basically the same as EOFs), including support for real- and
-complex-valued data, data stored in multiple files,
-PCA with multiple variables, and PCA of circular data.
+Parallel computation of several flavors of PCA is available,
+including support for real- and complex-valued data, 
+circular-valued data, data stored in multiple files, and
+PCA with multiple variables.
 Any of these flavors of PCA may be computed along any
 dimension of the user's choice, and may have missing rows
 of data in any configuration along the remaining dimensions.
